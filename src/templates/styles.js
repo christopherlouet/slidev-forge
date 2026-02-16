@@ -4,7 +4,7 @@ export function generateStyles(config) {
   const theme = getTheme(config.visual_theme);
   const [color1, color2] = theme.h1Colors;
 
-  return `h1 {
+  let css = `h1 {
     background-color: ${color1};
     background-image: linear-gradient(45deg, ${color1} 10%, ${color2} 20%);
     background-size: 100%;
@@ -32,4 +32,21 @@ li::marker {
     color: ${theme.accentColor};
 }
 `;
+
+  if (config.logo) {
+    css += `
+.slidev-layout::after {
+    content: '';
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 48px;
+    height: 48px;
+    background: url('/${config.logo}') no-repeat center / contain;
+    pointer-events: none;
+}
+`;
+  }
+
+  return css;
 }
