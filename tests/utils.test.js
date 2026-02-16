@@ -42,7 +42,7 @@ describe('utils', () => {
     });
 
     it('should handle apostrophes', () => {
-      expect(slugify("Tech'Dej Oxxeo")).toBe('tech-dej-oxxeo');
+      expect(slugify("Tech'Dej Event")).toBe('tech-dej-event');
     });
   });
 

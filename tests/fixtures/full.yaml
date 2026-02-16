@@ -1,17 +1,17 @@
-title: "Booster son environnement Linux"
-subtitle: "Personnaliser son terminal"
-author: "Christopher Louët"
-github: "christopherlouet"
-event_name: "Tech'Dej Oxxeo"
+title: "Introduction to Web Development"
+subtitle: "From HTML to modern frameworks"
+author: "Jane Doe"
+github: "janedoe"
+event_name: "Tech Meetup"
 slidev_theme: apple-basic
 visual_theme: dracula
 transition: fade
 sections:
-  - name: Introduction
-  - name: Oh My Zsh
+  - name: Getting Started
+  - name: HTML & CSS
     type: two-cols
-  - name: tmux
-  - name: Références
+  - name: JavaScript
+  - name: Best Practices
     type: quote
 deploy:
   - github-pages

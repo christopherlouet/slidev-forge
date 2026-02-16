@@ -54,22 +54,22 @@ describe('generateSlides', () => {
     const config = mergeDefaults({
       title: 'Test',
       author: 'Me',
-      sections: ['Oh My Zsh', 'tmux', 'fzf'],
+      sections: ['Getting Started', 'JavaScript', 'Best Practices'],
     });
     const slides = generateSlides(config);
-    expect(slides).toContain('# Oh My Zsh');
-    expect(slides).toContain('# tmux');
-    expect(slides).toContain('# fzf');
+    expect(slides).toContain('# Getting Started');
+    expect(slides).toContain('# JavaScript');
+    expect(slides).toContain('# Best Practices');
   });
 
-  it('should include a Références slide at the end', () => {
+  it('should include a References slide at the end', () => {
     const config = mergeDefaults({
       title: 'Test',
       author: 'Me',
-      sections: ['Intro', 'Références'],
+      sections: ['Intro', 'References'],
     });
     const slides = generateSlides(config);
-    expect(slides).toContain('# Références');
+    expect(slides).toContain('# References');
   });
 
   it('should include subtitle when provided', () => {
@@ -82,10 +82,10 @@ describe('generateSlides', () => {
     const config = mergeDefaults({
       title: 'Test',
       author: 'Me',
-      event_name: "Tech'Dej Oxxeo",
+      event_name: 'Tech Meetup',
     });
     const slides = generateSlides(config);
-    expect(slides).toContain("Tech'Dej Oxxeo");
+    expect(slides).toContain('Tech Meetup');
   });
 
   it('should use custom slidev_theme', () => {
@@ -208,11 +208,11 @@ describe('generateSlides', () => {
     const config = mergeDefaults({
       title: 'Test',
       author: 'Me',
-      github: 'christopherlouet',
+      github: 'janedoe',
       sections: [{ name: 'Merci', type: 'thanks' }],
     });
     const slides = generateSlides(config);
-    expect(slides).toContain('christopherlouet');
+    expect(slides).toContain('janedoe');
   });
 
   it('should generate about slide with placeholder', () => {

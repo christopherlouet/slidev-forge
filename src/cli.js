@@ -99,8 +99,8 @@ export function showHelp() {
   }
   console.log(`
   ${pc.bold('Exemple de YAML minimal:')}
-    title: Mon Super Talk
-    author: Christopher Louet
+    title: My Awesome Talk
+    author: Jane Doe
 `);
 }
 

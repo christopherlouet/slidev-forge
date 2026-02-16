@@ -28,8 +28,8 @@ author: Jane Doe
 **Full YAML**:
 
 ```yaml
-title: "Boost your Linux environment"
-subtitle: "Customize your terminal and boost productivity"
+title: "Introduction to Web Development"
+subtitle: "From HTML to modern frameworks"
 author: "Jane Doe"
 github: "janedoe"
 event_name: "Tech Meetup"
@@ -39,16 +39,16 @@ visual_theme: dracula
 transition: fade
 
 sections:
-  - name: Introduction
-  - name: Oh My Zsh
+  - name: Getting Started
+  - name: HTML & CSS
     type: two-cols
-  - name: tmux
+  - name: JavaScript
     type: image-right
-  - name: References
+  - name: Best Practices
     type: quote
   - name: Q&A
     type: qna
-  - name: Merci
+  - name: Thanks
     type: thanks
 
 deploy:
@@ -182,7 +182,7 @@ npm run export  # Export to PDF
 ## Development
 
 ```bash
-git clone git@github.com:christopherlouet/slidev-forge.git
+git clone git@github.com:your-username/slidev-forge.git
 cd slidev-forge
 npm install
 npm test              # Run tests

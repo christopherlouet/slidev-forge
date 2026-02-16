@@ -154,10 +154,10 @@ describe('cli', () => {
         visual_theme: 'cyberpunk',
         project_name: 'test',
         sections: '',
-        github: 'christopherlouet',
+        github: 'janedoe',
       };
       const config = buildConfigFromArgs(answers);
-      expect(config.github).toBe('christopherlouet');
+      expect(config.github).toBe('janedoe');
     });
 
     it('should not include optional fields when empty', () => {
