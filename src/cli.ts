@@ -9,6 +9,7 @@ import { generate } from './generator.js';
 import { writeFile } from './writer.js';
 import { THEMES, DEFAULT_THEME } from './themes.js';
 import { slugify, expandHome } from './utils.js';
+import { loadGlobalConfig, mergeGlobalConfig } from './global-config.js';
 import type { ParsedArgs, UserConfig, ResolvedConfig } from './types.js';
 
 export const ALLOWED_PM = ['npm', 'pnpm', 'yarn', 'bun'] as const;
@@ -227,16 +228,19 @@ export async function run(args: string[]): Promise<void> {
   let userConfig: ResolvedConfig;
   let destDir: string;
 
+  // Load global preferences
+  const globalConfig = await loadGlobalConfig();
+
   if (parsed.mode === 'yaml') {
     const rawConfig = await loadConfig(resolve(parsed.yamlPath!));
     validateConfig(rawConfig);
-    userConfig = mergeDefaults(rawConfig);
+    userConfig = mergeDefaults(mergeGlobalConfig(globalConfig, rawConfig));
     destDir = parsed.destDir
       ? resolveDestDir(parsed.destDir)
       : resolve(userConfig.project_name);
   } else {
     const answers = await promptInteractive();
-    userConfig = mergeDefaults(buildConfigFromArgs(answers));
+    userConfig = mergeDefaults(mergeGlobalConfig(globalConfig, buildConfigFromArgs(answers)));
     destDir = resolveDestDir(answers.dest_dir);
   }
 
