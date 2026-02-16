@@ -1,4 +1,5 @@
 import { getTheme } from '../themes.js';
+import { t } from '../i18n.js';
 
 export function generateSlides(config) {
   const theme = getTheme(config.visual_theme);
@@ -16,6 +17,7 @@ export function generateSlides(config) {
 }
 
 function generateFrontmatter(config) {
+  const lang = config.language;
   const lines = [
     '---',
     `theme: ${config.slidev_theme}`,
@@ -28,13 +30,55 @@ function generateFrontmatter(config) {
     '  persist: false',
     `transition: ${config.transition}`,
     'mdc: true',
-    'export:',
-    `  format: ${config.export.format}`,
-    `  timeout: 30000`,
-    `  dark: ${config.export.dark}`,
-    `  withClicks: ${config.export.with_clicks}`,
-    '  withToc: false',
   ];
+
+  // v1.3 conditional fields
+  if (config.line_numbers === true) {
+    lines.push('lineNumbers: true');
+  }
+  if (config.aspect_ratio) {
+    lines.push(`aspectRatio: '${config.aspect_ratio}'`);
+  }
+  if (config.color_schema) {
+    lines.push(`colorSchema: ${config.color_schema}`);
+  }
+  if (config.favicon) {
+    lines.push(`favicon: ${config.favicon}`);
+  }
+  if (config.download === true) {
+    lines.push('download: true');
+  }
+
+  // htmlAttrs with language
+  if (lang) {
+    lines.push('htmlAttrs:');
+    lines.push(`  lang: ${lang}`);
+  }
+
+  // fonts block
+  if (config.fonts && typeof config.fonts === 'object') {
+    lines.push('fonts:');
+    for (const [key, value] of Object.entries(config.fonts)) {
+      lines.push(`  ${key}: ${value}`);
+    }
+  }
+
+  // addons block
+  if (Array.isArray(config.addons) && config.addons.length > 0) {
+    lines.push('addons:');
+    for (const addon of config.addons) {
+      lines.push(`  - ${addon}`);
+    }
+  }
+
+  // export config
+  lines.push('export:');
+  lines.push(`  format: ${config.export.format}`);
+  lines.push(`  timeout: 30000`);
+  lines.push(`  dark: ${config.export.dark}`);
+  lines.push(`  withClicks: ${config.export.with_clicks}`);
+  lines.push('  withToc: false');
+
   return lines.join('\n');
 }
 
@@ -89,12 +133,13 @@ function generateTitleSlide(config, theme) {
 }
 
 function generateTocSlide(config) {
+  const lang = config.language;
   const lines = [
     `transition: ${config.transition}`,
     'hideInToc: true',
     '---',
     '',
-    '# Sommaire',
+    `# ${t('toc_title', lang)}`,
     '',
     '<Toc minDepth="1" maxDepth="2"></Toc>',
     '',
@@ -103,6 +148,7 @@ function generateTocSlide(config) {
 }
 
 function generateSectionSlide(sectionTitle, sectionType, config) {
+  const lang = config.language;
   const lines = [`transition: ${config.transition}`];
 
   if (sectionType === 'two-cols') {
@@ -111,11 +157,11 @@ function generateSectionSlide(sectionTitle, sectionType, config) {
     lines.push('');
     lines.push(`# ${sectionTitle}`);
     lines.push('');
-    lines.push(`<!-- Colonne gauche -->`);
+    lines.push(`<!-- ${t('comment_left_column', lang)} -->`);
     lines.push('');
     lines.push('::right::');
     lines.push('');
-    lines.push(`<!-- Colonne droite -->`);
+    lines.push(`<!-- ${t('comment_right_column', lang)} -->`);
   } else if (sectionType === 'image-right') {
     lines.push('layout: image-right');
     lines.push('image: https://cover.sli.dev');
@@ -123,22 +169,22 @@ function generateSectionSlide(sectionTitle, sectionType, config) {
     lines.push('');
     lines.push(`# ${sectionTitle}`);
     lines.push('');
-    lines.push(`<!-- Contenu a gauche de l'image -->`);
+    lines.push(`<!-- ${t('comment_image_content', lang)} -->`);
   } else if (sectionType === 'quote') {
     lines.push('---');
     lines.push('');
     lines.push(`# ${sectionTitle}`);
     lines.push('');
-    lines.push('> Citation a remplacer');
+    lines.push(`> ${t('comment_replace_quote', lang)}`);
     lines.push('');
-    lines.push('-- Auteur');
+    lines.push(`-- ${t('comment_quote_author', lang)}`);
   } else if (sectionType === 'qna') {
     lines.push('layout: center');
     lines.push('---');
     lines.push('');
     lines.push(`# ${sectionTitle}`);
     lines.push('');
-    lines.push(`Questions & réponses`);
+    lines.push(t('comment_qna', lang));
   } else if (sectionType === 'thanks') {
     lines.push('layout: center');
     lines.push('---');
@@ -157,18 +203,18 @@ function generateSectionSlide(sectionTitle, sectionType, config) {
     lines.push('');
     lines.push(`**${config.author}**`);
     lines.push('');
-    lines.push(`<!-- Ajoutez votre bio ici -->`);
+    lines.push(`<!-- ${t('comment_add_bio', lang)} -->`);
   } else {
     lines.push('---');
     lines.push('');
     lines.push(`# ${sectionTitle}`);
     lines.push('');
-    lines.push(`<!-- Contenu de la section "${sectionTitle}" -->`);
+    lines.push(`<!-- ${t('comment_section_content', lang)} "${sectionTitle}" -->`);
   }
 
   lines.push('');
   lines.push('<!--');
-  lines.push(`Notes pour la section "${sectionTitle}"`);
+  lines.push(`${t('section_notes', lang)} "${sectionTitle}"`);
   lines.push('-->');
   lines.push('');
   return lines.join('\n');
