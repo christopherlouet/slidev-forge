@@ -50,7 +50,7 @@ export async function loadConfig(yamlPath) {
 export function mergeDefaults(userConfig) {
   let visualTheme = userConfig.visual_theme || DEFAULTS.visual_theme;
   if (visualTheme === 'custom') {
-    buildCustomTheme(userConfig.colors);
+    THEMES.custom = buildCustomTheme(userConfig.colors);
   } else if (!THEMES[visualTheme]) {
     console.warn(`Unknown visual theme "${visualTheme}", falling back to "${DEFAULT_THEME}"`);
     visualTheme = DEFAULT_THEME;

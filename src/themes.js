@@ -1,3 +1,5 @@
+import { validateHexColor } from './utils.js';
+
 export const THEMES = {
   cyberpunk: {
     name: 'Cyberpunk',
@@ -163,6 +165,12 @@ export function buildCustomTheme(colors) {
   }
   if (!colors.secondary) {
     throw new Error('Custom theme requires colors.secondary');
+  }
+  if (!validateHexColor(colors.primary)) {
+    throw new Error('Custom theme requires colors.primary to be a valid hex color (#RRGGBB)');
+  }
+  if (!validateHexColor(colors.secondary)) {
+    throw new Error('Custom theme requires colors.secondary to be a valid hex color (#RRGGBB)');
   }
   return {
     name: 'Custom',

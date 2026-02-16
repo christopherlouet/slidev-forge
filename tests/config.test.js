@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { resolve } from 'node:path';
 import { loadConfig, mergeDefaults, validateConfig, normalizeSections, SECTION_TYPES } from '../src/config.js';
+import { getTheme } from '../src/themes.js';
 
 const FIXTURES = resolve(import.meta.dirname, 'fixtures');
 
@@ -216,6 +217,20 @@ describe('config', () => {
       expect(config.colors).toBeDefined();
       expect(warnSpy).not.toHaveBeenCalled();
       warnSpy.mockRestore();
+    });
+
+    it('should register custom theme so getTheme("custom") works', () => {
+      mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        visual_theme: 'custom',
+        colors: { primary: '#AA00BB', secondary: '#00CCDD' },
+      });
+      const theme = getTheme('custom');
+      expect(theme.name).toBe('Custom');
+      expect(theme.h1Colors).toEqual(['#AA00BB', '#00CCDD']);
+      expect(theme.linkColor).toBe('#AA00BB');
+      expect(theme.accentColor).toBe('#00CCDD');
     });
 
     it('should throw when custom theme has no colors', () => {
