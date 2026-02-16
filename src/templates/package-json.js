@@ -1,11 +1,16 @@
 export function generatePackageJson(config) {
   const dependencies = {
-    '@slidev/cli': '^0.50.0',
+    '@slidev/cli': '^52.0.0',
     '@slidev/theme-default': 'latest',
-    vue: '^3.5.10',
+    vue: '^3.5.27',
   };
   if (config.slidev_theme !== 'default') {
     dependencies[`@slidev/theme-${config.slidev_theme}`] = 'latest';
+  }
+  if (Array.isArray(config.addons)) {
+    for (const addon of config.addons) {
+      dependencies[addon] = 'latest';
+    }
   }
 
   const pkg = {
@@ -19,9 +24,12 @@ export function generatePackageJson(config) {
     },
     dependencies,
     devDependencies: {
-      'playwright-chromium': '^1.47.2',
+      'playwright-chromium': '^1.58.0',
       prettier: '^3.3.3',
       'prettier-plugin-slidev': '^1.0.5',
+    },
+    overrides: {
+      'lodash-es': '>=4.17.23',
     },
   };
 
