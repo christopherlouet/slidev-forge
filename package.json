@@ -17,7 +17,7 @@
     "generator"
   ],
   "bin": {
-    "slidev-forge": "./bin/slidev-init.js"
+    "slidev-forge": "./bin/slidev-forge.js"
   },
   "files": [
     "bin/",
