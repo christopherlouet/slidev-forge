@@ -1,6 +1,12 @@
 # slidev-forge
 
+[![npm version](https://img.shields.io/npm/v/slidev-forge)](https://www.npmjs.com/package/slidev-forge)
+[![license](https://img.shields.io/npm/l/slidev-forge)](LICENSE)
+[![node](https://img.shields.io/node/v/slidev-forge)](package.json)
+
 Scaffold complete [Slidev](https://sli.dev) presentation projects from a YAML config file or interactive prompts.
+
+**Why?** Setting up a Slidev project with custom themes, layouts, deploy configs, and consistent structure takes time. `slidev-forge` does it in seconds — answer a few questions or point it at a YAML file and get a ready-to-present project.
 
 ## Quick Start
 
@@ -63,6 +69,26 @@ options:
   snippets: true
   components: true
 ```
+
+## CLI Usage
+
+```
+slidev-forge                           Interactive mode
+slidev-forge <config.yaml> [dest]      Generate from YAML
+slidev-forge --dry-run <config.yaml>   Preview without writing files
+slidev-forge --no-git <config.yaml>    Skip git init
+slidev-forge --version                 Show version
+slidev-forge --help                    Show help
+```
+
+| Flag | Description |
+|------|-------------|
+| `--dry-run` | Show what would be generated without writing any files |
+| `--no-git` | Skip `git init` in the generated project |
+| `--version`, `-v` | Print the current version |
+| `--help`, `-h` | Show help with available themes |
+
+Flags can be combined: `slidev-forge --dry-run --no-git presentation.yaml`
 
 ## Visual Themes
 
@@ -182,11 +208,11 @@ npm run export  # Export to PDF
 ## Development
 
 ```bash
-git clone git@github.com:your-username/slidev-forge.git
+git clone git@github.com:christopherlouet/slidev-forge.git
 cd slidev-forge
 npm install
 npm test              # Run tests
-npm run coverage      # Run tests with coverage
+npm run test:coverage # Run tests with coverage
 ```
 
 ## Requirements
@@ -195,4 +221,4 @@ npm run coverage      # Run tests with coverage
 
 ## License
 
-GPL-3.0
+[GPL-3.0](LICENSE)
