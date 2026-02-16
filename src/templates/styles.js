@@ -13,5 +13,23 @@ export function generateStyles(config) {
     -webkit-text-fill-color: transparent;
     -moz-text-fill-color: transparent;
 }
+
+a {
+    color: ${theme.linkColor};
+    text-decoration: none;
+}
+
+a:hover {
+    color: ${theme.accentColor};
+    text-decoration: underline;
+}
+
+.slidev-code-wrapper pre {
+    background: ${theme.codeBlockBg} !important;
+}
+
+li::marker {
+    color: ${theme.accentColor};
+}
 `;
 }

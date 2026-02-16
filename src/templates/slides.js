@@ -6,10 +6,12 @@ export function generateSlides(config) {
 
   parts.push(generateFrontmatter(config));
   parts.push(generateTitleSlide(config, theme));
-  parts.push(generateTocSlide());
+  parts.push(generateTocSlide(config));
 
   for (const section of config.sections) {
-    parts.push(generateSectionSlide(section));
+    const sectionName = typeof section === 'string' ? section : section.name;
+    const sectionType = typeof section === 'string' ? 'default' : (section.type || 'default');
+    parts.push(generateSectionSlide(sectionName, sectionType, config));
   }
 
   return parts.join('\n---\n');
@@ -88,9 +90,9 @@ function generateTitleSlide(config, theme) {
   return lines.join('\n');
 }
 
-function generateTocSlide() {
+function generateTocSlide(config) {
   const lines = [
-    'transition: slide-left',
+    `transition: ${config.transition}`,
     'hideInToc: true',
     '---',
     '',
@@ -102,15 +104,74 @@ function generateTocSlide() {
   return lines.join('\n');
 }
 
-function generateSectionSlide(sectionTitle) {
-  const lines = [
-    'transition: slide-left',
-    '---',
-    '',
-    `# ${sectionTitle}`,
-    '',
-    `<!-- Contenu de la section "${sectionTitle}" -->`,
-    '',
-  ];
+function generateSectionSlide(sectionTitle, sectionType, config) {
+  const lines = [`transition: ${config.transition}`];
+
+  if (sectionType === 'two-cols') {
+    lines.push('layout: two-cols');
+    lines.push('---');
+    lines.push('');
+    lines.push(`# ${sectionTitle}`);
+    lines.push('');
+    lines.push(`<!-- Colonne gauche -->`);
+    lines.push('');
+    lines.push('::right::');
+    lines.push('');
+    lines.push(`<!-- Colonne droite -->`);
+  } else if (sectionType === 'image-right') {
+    lines.push('layout: image-right');
+    lines.push('image: https://cover.sli.dev');
+    lines.push('---');
+    lines.push('');
+    lines.push(`# ${sectionTitle}`);
+    lines.push('');
+    lines.push(`<!-- Contenu a gauche de l'image -->`);
+  } else if (sectionType === 'quote') {
+    lines.push('---');
+    lines.push('');
+    lines.push(`# ${sectionTitle}`);
+    lines.push('');
+    lines.push('> Citation a remplacer');
+    lines.push('');
+    lines.push('-- Auteur');
+  } else if (sectionType === 'qna') {
+    lines.push('layout: center');
+    lines.push('---');
+    lines.push('');
+    lines.push(`# ${sectionTitle}`);
+    lines.push('');
+    lines.push(`Questions & réponses`);
+  } else if (sectionType === 'thanks') {
+    lines.push('layout: center');
+    lines.push('---');
+    lines.push('');
+    lines.push(`# ${sectionTitle}`);
+    lines.push('');
+    lines.push(`${config.author}`);
+    if (config.github) {
+      lines.push('');
+      lines.push(`[github.com/${config.github}](https://github.com/${config.github})`);
+    }
+  } else if (sectionType === 'about') {
+    lines.push('---');
+    lines.push('');
+    lines.push(`# ${sectionTitle}`);
+    lines.push('');
+    lines.push(`**${config.author}**`);
+    lines.push('');
+    lines.push(`<!-- Ajoutez votre bio ici -->`);
+  } else {
+    lines.push('---');
+    lines.push('');
+    lines.push(`# ${sectionTitle}`);
+    lines.push('');
+    lines.push(`<!-- Contenu de la section "${sectionTitle}" -->`);
+  }
+
+  lines.push('');
+  lines.push('<!--');
+  lines.push(`Notes pour la section "${sectionTitle}"`);
+  lines.push('-->');
+  lines.push('');
   return lines.join('\n');
 }

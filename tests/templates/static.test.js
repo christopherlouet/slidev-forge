@@ -63,4 +63,36 @@ describe('getStaticFiles', () => {
     const dests = files.map((f) => f.dest);
     expect(dests).not.toContain('vercel.json');
   });
+
+  it('should include components by default', () => {
+    const config = mergeDefaults({ title: 'Test', author: 'Me' });
+    const files = getStaticFiles(config);
+    const dests = files.map((f) => f.dest);
+    expect(dests).toContain('components/Counter.vue');
+    expect(dests).toContain('components/CodeComparison.vue');
+  });
+
+  it('should include layouts by default', () => {
+    const config = mergeDefaults({ title: 'Test', author: 'Me' });
+    const files = getStaticFiles(config);
+    const dests = files.map((f) => f.dest);
+    expect(dests).toContain('layouts/two-cols-header.vue');
+    expect(dests).toContain('layouts/image-right.vue');
+    expect(dests).toContain('layouts/quote.vue');
+  });
+
+  it('should not include components when options.components is false', () => {
+    const config = mergeDefaults({
+      title: 'Test',
+      author: 'Me',
+      options: { components: false },
+    });
+    const files = getStaticFiles(config);
+    const dests = files.map((f) => f.dest);
+    expect(dests).not.toContain('components/Counter.vue');
+    expect(dests).not.toContain('components/CodeComparison.vue');
+    expect(dests).not.toContain('layouts/two-cols-header.vue');
+    expect(dests).not.toContain('layouts/image-right.vue');
+    expect(dests).not.toContain('layouts/quote.vue');
+  });
 });

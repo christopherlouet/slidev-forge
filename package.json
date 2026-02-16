@@ -1,25 +1,43 @@
 {
   "name": "slidev-forge",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Initialisateur de projets Slidev avec themes visuels et configuration YAML",
   "type": "module",
+  "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/christopherlouet/slidev-forge.git"
+  },
+  "keywords": [
+    "slidev",
+    "presentation",
+    "scaffold",
+    "cli",
+    "slides",
+    "generator"
+  ],
   "bin": {
     "slidev-forge": "./bin/slidev-init.js"
   },
+  "files": [
+    "bin/",
+    "src/"
+  ],
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "yaml": "^2.7.0",
-    "@inquirer/prompts": "^7.3.2"
+    "@inquirer/prompts": "^7.3.2",
+    "picocolors": "^1.1.1",
+    "yaml": "^2.7.0"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^3.2.4",
     "vitest": "^3.0.5"
   },
   "engines": {
     "node": ">=20"
-  },
-  "private": true
+  }
 }

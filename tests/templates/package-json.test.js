@@ -59,4 +59,18 @@ describe('generatePackageJson', () => {
     expect(pkg.devDependencies.prettier).toBeDefined();
     expect(pkg.devDependencies['prettier-plugin-slidev']).toBeDefined();
   });
+
+  it('should not duplicate @slidev/theme-default when slidev_theme is "default"', () => {
+    const config = mergeDefaults({ title: 'Test', author: 'Me', slidev_theme: 'default' });
+    const output = generatePackageJson(config);
+    const occurrences = output.match(/@slidev\/theme-default/g);
+    expect(occurrences).toHaveLength(1);
+  });
+
+  it('should have both theme-default and custom theme when slidev_theme is not "default"', () => {
+    const config = mergeDefaults({ title: 'Test', author: 'Me', slidev_theme: 'seriph' });
+    const pkg = JSON.parse(generatePackageJson(config));
+    expect(pkg.dependencies['@slidev/theme-default']).toBeDefined();
+    expect(pkg.dependencies['@slidev/theme-seriph']).toBeDefined();
+  });
 });
