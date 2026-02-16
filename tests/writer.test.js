@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtemp, rm, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { writeFile, copyStaticFile } from '../src/writer.js';
+import { writeFile, copyStaticFile } from '../src/writer.ts';
 
 describe('writer', () => {
   let tempDir;
