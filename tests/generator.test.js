@@ -148,4 +148,59 @@ describe('generator', () => {
     const gitDir = await stat(join(tempDir, '.git'));
     expect(gitDir.isDirectory()).toBe(true);
   });
+
+  describe('v1.3 integration', () => {
+    it('should generate slides with all v1.3 frontmatter fields', async () => {
+      const config = mergeDefaults({
+        title: 'Advanced Talk',
+        author: 'Jane',
+        fonts: { sans: 'Inter', mono: 'Fira Code' },
+        line_numbers: true,
+        aspect_ratio: '4/3',
+        color_schema: 'dark',
+        favicon: 'logo.png',
+        download: true,
+        addons: ['slidev-addon-qrcode'],
+        language: 'en',
+      });
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).toContain('lineNumbers: true');
+      expect(slides).toContain("aspectRatio: '4/3'");
+      expect(slides).toContain('colorSchema: dark');
+      expect(slides).toContain('favicon: logo.png');
+      expect(slides).toContain('download: true');
+      expect(slides).toContain('lang: en');
+      expect(slides).toContain('fonts:');
+      expect(slides).toContain('  sans: Inter');
+      expect(slides).toContain('addons:');
+      expect(slides).toContain('  - slidev-addon-qrcode');
+      expect(slides).toContain('# Table of Contents');
+    });
+
+    it('should add addons as package.json dependencies', async () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        addons: ['slidev-addon-qrcode'],
+      });
+      await generate(config, tempDir);
+
+      const pkg = JSON.parse(await readFile(join(tempDir, 'package.json'), 'utf-8'));
+      expect(pkg.dependencies['slidev-addon-qrcode']).toBe('latest');
+    });
+
+    it('should generate English README when language is en', async () => {
+      const config = mergeDefaults({
+        title: 'My Talk',
+        author: 'Jane',
+        language: 'en',
+      });
+      await generate(config, tempDir);
+
+      const readme = await readFile(join(tempDir, 'README.md'), 'utf-8');
+      expect(readme).toContain('By **Jane**');
+    });
+  });
 });
