@@ -1,7 +1,13 @@
-import { getTheme } from '../themes.ts';
-import { t } from '../i18n.ts';
+import { getTheme } from '../themes.js';
+import { t } from '../i18n.js';
+import type { ResolvedConfig, Section, ThemeDefinition, SocialConfig } from '../types.js';
 
-const SOCIAL_PLATFORMS = {
+interface SocialPlatformDef {
+  url: string;
+  icon: string;
+}
+
+const SOCIAL_PLATFORMS: Record<string, SocialPlatformDef> = {
   twitter: { url: 'https://twitter.com/', icon: 'carbon-logo-twitter' },
   linkedin: { url: 'https://linkedin.com/in/', icon: 'carbon-logo-linkedin' },
   github: { url: 'https://github.com/', icon: 'carbon-logo-github' },
@@ -13,13 +19,13 @@ const SOCIAL_PLATFORMS = {
   email: { url: 'mailto:', icon: 'carbon-email' },
 };
 
-function generateSocialLinks(social) {
+function generateSocialLinks(social: SocialConfig | undefined): string {
   if (!social || typeof social !== 'object') return '';
-  const links = [];
+  const links: string[] = [];
   for (const [platform, handle] of Object.entries(social)) {
     const def = SOCIAL_PLATFORMS[platform];
     if (!def) continue;
-    const href = handle.startsWith('http') || handle.includes('@') ? `${def.url}${handle}` : `${def.url}${handle}`;
+    const href = `${def.url}${handle}`;
     links.push(
       `  <a href="${href}" target="_blank" class="text-xl slidev-icon-btn opacity-50 !border-none">\n    <${def.icon} />\n  </a>`,
     );
@@ -28,9 +34,9 @@ function generateSocialLinks(social) {
   return `\n<div class="abs-br m-6 flex gap-2">\n${links.join('\n')}\n</div>`;
 }
 
-export function generateSlides(config) {
+export function generateSlides(config: ResolvedConfig): string {
   const theme = getTheme(config.visual_theme);
-  const parts = [];
+  const parts: string[] = [];
 
   parts.push(generateFrontmatter(config));
   parts.push(generateTitleSlide(config, theme));
@@ -43,9 +49,9 @@ export function generateSlides(config) {
   return parts.join('\n---\n');
 }
 
-function generateFrontmatter(config) {
+function generateFrontmatter(config: ResolvedConfig): string {
   const lang = config.language;
-  const lines = [
+  const lines: string[] = [
     '---',
     `theme: ${config.slidev_theme}`,
     `title: ${config.title}`,
@@ -114,8 +120,8 @@ function generateFrontmatter(config) {
   return lines.join('\n');
 }
 
-function generateTitleSlide(config, theme) {
-  const lines = [''];
+function generateTitleSlide(config: ResolvedConfig, theme: ThemeDefinition): string {
+  const lines: string[] = [''];
 
   if (config.event_name) {
     lines.push(`# ${config.event_name}`);
@@ -167,9 +173,9 @@ function generateTitleSlide(config, theme) {
   return lines.join('\n');
 }
 
-function generateTocSlide(config) {
+function generateTocSlide(config: ResolvedConfig): string {
   const lang = config.language;
-  const lines = [
+  const lines: string[] = [
     `transition: ${config.transition}`,
     'hideInToc: true',
     '---',
@@ -182,11 +188,11 @@ function generateTocSlide(config) {
   return lines.join('\n');
 }
 
-function generateSectionSlide(section, config) {
+function generateSectionSlide(section: Section, config: ResolvedConfig): string {
   const lang = config.language;
   const sectionTitle = section.name;
   const sectionType = section.type;
-  const lines = [`transition: ${config.transition}`];
+  const lines: string[] = [`transition: ${config.transition}`];
 
   if (sectionType === 'two-cols') {
     lines.push('layout: two-cols');

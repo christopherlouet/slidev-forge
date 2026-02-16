@@ -1,4 +1,4 @@
-import { getTheme } from '../themes.ts';
+import { getTheme } from '../themes.js';
 import type { ResolvedConfig } from '../types.js';
 
 export function generateStyles(config: ResolvedConfig): string {

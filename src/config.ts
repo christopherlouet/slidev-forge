@@ -1,16 +1,17 @@
 import { readFile } from 'node:fs/promises';
 import { parse } from 'yaml';
 import { slugify, sanitizeProjectName } from './utils.js';
-import { THEMES, DEFAULT_THEME, TRANSITIONS, DEFAULT_TRANSITION, buildCustomTheme } from './themes.ts';
-import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, t } from './i18n.ts';
+import { THEMES, DEFAULT_THEME, TRANSITIONS, DEFAULT_TRANSITION, buildCustomTheme } from './themes.js';
+import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, t } from './i18n.js';
+import type { Section, UserConfig, ResolvedConfig, ExportConfig, OptionsConfig } from './types.js';
 
-const VALID_COLOR_SCHEMAS = ['light', 'dark', 'auto'];
+const VALID_COLOR_SCHEMAS = ['light', 'dark', 'auto'] as const;
 const ASPECT_RATIO_REGEX = /^\d+\/\d+$/;
 
-export const SECTION_TYPES = ['default', 'two-cols', 'image-right', 'quote', 'qna', 'thanks', 'about', 'code', 'diagram', 'cover', 'iframe', 'steps', 'fact'];
+export const SECTION_TYPES: string[] = ['default', 'two-cols', 'image-right', 'quote', 'qna', 'thanks', 'about', 'code', 'diagram', 'cover', 'iframe', 'steps', 'fact'];
 
-export const PRESETS = {
-  conference: (lang) => [
+export const PRESETS: Record<string, (lang: string) => Section[]> = {
+  conference: (lang: string) => [
     { name: t('preset_intro', lang), type: 'default' },
     { name: t('preset_about', lang), type: 'about' },
     { name: t('preset_topic', lang) + ' 1', type: 'default' },
@@ -19,7 +20,7 @@ export const PRESETS = {
     { name: t('preset_qna', lang), type: 'qna' },
     { name: t('preset_thanks', lang), type: 'thanks' },
   ],
-  workshop: (lang) => [
+  workshop: (lang: string) => [
     { name: t('preset_intro', lang), type: 'default' },
     { name: t('preset_prereq', lang), type: 'steps' },
     { name: t('preset_module', lang) + ' 1', type: 'default' },
@@ -28,13 +29,13 @@ export const PRESETS = {
     { name: t('preset_recap', lang), type: 'steps' },
     { name: t('preset_resources', lang), type: 'default' },
   ],
-  lightning: (lang) => [
+  lightning: (lang: string) => [
     { name: t('preset_problem', lang), type: 'default' },
     { name: t('preset_solution', lang), type: 'default' },
     { name: t('preset_demo', lang), type: 'code' },
     { name: t('preset_cta', lang), type: 'fact' },
   ],
-  pitch: (lang) => [
+  pitch: (lang: string) => [
     { name: t('preset_problem', lang), type: 'default' },
     { name: t('preset_solution', lang), type: 'default' },
     { name: t('preset_market', lang), type: 'fact' },
@@ -45,7 +46,7 @@ export const PRESETS = {
   ],
 };
 
-export function normalizeSections(sections) {
+export function normalizeSections(sections: (string | Section)[]): Section[] {
   return sections.map((section) => {
     if (typeof section === 'string') {
       return { name: section, type: 'default' };
@@ -66,29 +67,29 @@ const DEFAULTS = {
   visual_theme: 'cyberpunk',
   transition: 'slide-left',
   language: DEFAULT_LANGUAGE,
-  sections: ['Introduction', 'Références'],
+  sections: ['Introduction', 'Références'] as (string | Section)[],
   deploy: ['github-pages'],
   export: {
     format: 'pdf',
     dark: false,
     with_clicks: false,
-  },
+  } as ExportConfig,
   options: {
     snippets: true,
     components: true,
-  },
+  } as OptionsConfig,
 };
 
-export async function loadConfig(yamlPath) {
+export async function loadConfig(yamlPath: string): Promise<UserConfig> {
   const content = await readFile(yamlPath, 'utf-8');
   const config = parse(content);
   if (!config || typeof config !== 'object') {
     throw new Error(`Invalid YAML: expected an object in ${yamlPath}`);
   }
-  return config;
+  return config as UserConfig;
 }
 
-export function mergeDefaults(userConfig) {
+export function mergeDefaults(userConfig: UserConfig): ResolvedConfig {
   let visualTheme = userConfig.visual_theme || DEFAULTS.visual_theme;
   if (visualTheme === 'custom') {
     THEMES.custom = buildCustomTheme(userConfig.colors);
@@ -105,7 +106,7 @@ export function mergeDefaults(userConfig) {
 
   // Validate language
   let language = userConfig.language || DEFAULTS.language;
-  if (!SUPPORTED_LANGUAGES.includes(language)) {
+  if (!SUPPORTED_LANGUAGES.includes(language as typeof SUPPORTED_LANGUAGES[number])) {
     console.warn(`Unsupported language "${language}", falling back to "${DEFAULT_LANGUAGE}"`);
     language = DEFAULT_LANGUAGE;
   }
@@ -121,7 +122,7 @@ export function mergeDefaults(userConfig) {
 
   // Validate color_schema
   if (config.color_schema !== undefined) {
-    if (!VALID_COLOR_SCHEMAS.includes(config.color_schema)) {
+    if (!(VALID_COLOR_SCHEMAS as readonly string[]).includes(config.color_schema)) {
       console.warn(`Invalid color_schema "${config.color_schema}", ignoring`);
       delete config.color_schema;
     }
@@ -136,7 +137,7 @@ export function mergeDefaults(userConfig) {
   }
 
   // Resolve sections: explicit > preset > defaults
-  let rawSections;
+  let rawSections: (string | Section)[];
   if (config.sections) {
     rawSections = config.sections;
   } else if (config.preset && PRESETS[config.preset]) {
@@ -165,10 +166,10 @@ export function mergeDefaults(userConfig) {
       ...DEFAULTS.options,
       ...(config.options || {}),
     },
-  };
+  } as ResolvedConfig;
 }
 
-export function validateConfig(config) {
+export function validateConfig(config: UserConfig): void {
   if (!config.title || typeof config.title !== 'string' || config.title.trim() === '') {
     throw new Error('Configuration error: "title" is required and must be a non-empty string');
   }

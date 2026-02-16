@@ -6,17 +6,18 @@ import { stringify } from 'yaml';
 import pc from 'picocolors';
 import { loadConfig, mergeDefaults, validateConfig } from './config.js';
 import { generate } from './generator.js';
-import { writeFile } from './writer.ts';
-import { THEMES, DEFAULT_THEME } from './themes.ts';
+import { writeFile } from './writer.js';
+import { THEMES, DEFAULT_THEME } from './themes.js';
 import { slugify, expandHome } from './utils.js';
+import type { ParsedArgs, UserConfig, ResolvedConfig } from './types.js';
 
-export const ALLOWED_PM = ['npm', 'pnpm', 'yarn', 'bun'];
+export const ALLOWED_PM = ['npm', 'pnpm', 'yarn', 'bun'] as const;
 
-export function resolveDestDir(rawPath) {
+export function resolveDestDir(rawPath: string): string {
   return resolve(expandHome(rawPath));
 }
 
-export function parseArgs(args) {
+export function parseArgs(args: string[]): ParsedArgs {
   if (args.includes('--help') || args.includes('-h')) {
     return { mode: 'help' };
   }
@@ -25,7 +26,7 @@ export function parseArgs(args) {
     return { mode: 'version' };
   }
 
-  const flags = {};
+  const flags: { dryRun?: boolean; noGit?: boolean } = {};
   if (args.includes('--dry-run')) flags.dryRun = true;
   if (args.includes('--no-git')) flags.noGit = true;
 
@@ -45,8 +46,20 @@ export function parseArgs(args) {
   return { mode: 'interactive', destDir: positional[0], ...flags };
 }
 
-export function buildConfigFromArgs(answers) {
-  const config = {
+interface InteractiveAnswers {
+  title: string;
+  author: string;
+  visual_theme: string;
+  preset: string;
+  dest_dir: string;
+  subtitle: string;
+  event_name: string;
+  github: string;
+  sections: string;
+}
+
+export function buildConfigFromArgs(answers: InteractiveAnswers): UserConfig {
+  const config: UserConfig = {
     title: answers.title,
     author: answers.author,
     visual_theme: answers.visual_theme,
@@ -76,13 +89,13 @@ export function buildConfigFromArgs(answers) {
   return config;
 }
 
-export function showVersion() {
+export function showVersion(): void {
   const pkgPath = resolve(dirname(fileURLToPath(import.meta.url)), '../package.json');
   const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
   console.log(pkg.version);
 }
 
-export function showHelp() {
+export function showHelp(): void {
   console.log(`
   ${pc.bold('slidev-forge')} - Generateur de projets Slidev
 
@@ -103,7 +116,7 @@ export function showHelp() {
 `);
 }
 
-export async function promptInteractive() {
+export async function promptInteractive(): Promise<InteractiveAnswers> {
   const { input, select } = await import('@inquirer/prompts');
 
   const title = await input({ message: 'Titre de la presentation:' });
@@ -157,7 +170,7 @@ export async function promptInteractive() {
   return { title, author, visual_theme, preset, dest_dir, subtitle, event_name, github, sections };
 }
 
-export async function run(args) {
+export async function run(args: string[]): Promise<void> {
   const parsed = parseArgs(args);
 
   if (parsed.mode === 'help') {
@@ -170,13 +183,13 @@ export async function run(args) {
     return;
   }
 
-  let userConfig;
-  let destDir;
+  let userConfig: ResolvedConfig;
+  let destDir: string;
 
   if (parsed.mode === 'yaml') {
-    userConfig = await loadConfig(resolve(parsed.yamlPath));
-    validateConfig(userConfig);
-    userConfig = mergeDefaults(userConfig);
+    const rawConfig = await loadConfig(resolve(parsed.yamlPath!));
+    validateConfig(rawConfig);
+    userConfig = mergeDefaults(rawConfig);
     destDir = parsed.destDir
       ? resolveDestDir(parsed.destDir)
       : resolve(userConfig.project_name);
@@ -252,7 +265,7 @@ export async function run(args) {
       ],
     });
 
-    if (pm !== 'skip' && ALLOWED_PM.includes(pm)) {
+    if (pm !== 'skip' && (ALLOWED_PM as readonly string[]).includes(pm)) {
       const { execSync } = await import('node:child_process');
       console.log(`\n  ${pc.cyan(`Installation avec ${pm}...`)}`);
       execSync(`${pm} install`, { cwd: destDir, stdio: 'inherit' });

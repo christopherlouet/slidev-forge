@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { t, SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from '../src/i18n.ts';
+import { t, SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from '../src/i18n.js';
 
 describe('i18n', () => {
   describe('SUPPORTED_LANGUAGES', () => {
