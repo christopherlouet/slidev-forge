@@ -371,4 +371,41 @@ describe('generator', () => {
       expect(slides).toContain('twitter.com/testuser');
     });
   });
+
+  describe('v2.0 integration', () => {
+    it('should generate multi-file structure when multi_file is true', async () => {
+      const config = mergeDefaults({
+        title: 'Multi File Talk',
+        author: 'Me',
+        multi_file: true,
+        sections: [
+          { name: 'Introduction', type: 'default' },
+          { name: 'Demo', type: 'code' },
+        ],
+      });
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).toContain('src: ./pages/01-toc.md');
+      expect(slides).toContain('src: ./pages/02-introduction.md');
+      expect(slides).toContain('src: ./pages/03-demo.md');
+
+      const toc = await readFile(join(tempDir, 'pages/01-toc.md'), 'utf-8');
+      expect(toc).toContain('Sommaire');
+
+      const intro = await readFile(join(tempDir, 'pages/02-introduction.md'), 'utf-8');
+      expect(intro).toContain('# Introduction');
+    });
+
+    it('should generate single file when multi_file is not set', async () => {
+      const config = mergeDefaults({
+        title: 'Single File Talk',
+        author: 'Me',
+      });
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).not.toContain('src: ./pages/');
+    });
+  });
 });

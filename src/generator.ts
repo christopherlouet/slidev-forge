@@ -2,6 +2,7 @@ import { spawnSync } from 'node:child_process';
 import { writeFile, copyStaticFile } from './writer.js';
 import { escapeHtml } from './utils.js';
 import { generateSlides } from './templates/slides.js';
+import { generateMultiFile } from './templates/multi-file.js';
 import { generatePackageJson } from './templates/package-json.js';
 import { generateReadme } from './templates/readme.js';
 import { generateStyles } from './templates/styles.js';
@@ -12,7 +13,17 @@ import type { ResolvedConfig, GenerateResult, GenerateOptions } from './types.js
 export async function generate(config: ResolvedConfig, destDir: string, options: GenerateOptions = {}): Promise<GenerateResult> {
   const files: string[] = [];
 
-  files.push(await writeFile(destDir, 'slides.md', generateSlides(config)));
+  // Generate slides (single file or multi-file)
+  if (config.multi_file) {
+    const multiOutput = generateMultiFile(config);
+    files.push(await writeFile(destDir, 'slides.md', multiOutput.slidesMain));
+    for (const page of multiOutput.pages) {
+      files.push(await writeFile(destDir, page.path, page.content));
+    }
+  } else {
+    files.push(await writeFile(destDir, 'slides.md', generateSlides(config)));
+  }
+
   files.push(await writeFile(destDir, 'package.json', generatePackageJson(config)));
   files.push(await writeFile(destDir, 'README.md', generateReadme(config)));
   files.push(await writeFile(destDir, 'styles/index.css', generateStyles(config)));
