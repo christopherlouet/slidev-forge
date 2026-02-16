@@ -9,9 +9,7 @@ export function generateSlides(config) {
   parts.push(generateTocSlide(config));
 
   for (const section of config.sections) {
-    const sectionName = typeof section === 'string' ? section : section.name;
-    const sectionType = typeof section === 'string' ? 'default' : (section.type || 'default');
-    parts.push(generateSectionSlide(sectionName, sectionType, config));
+    parts.push(generateSectionSlide(section.name, section.type, config));
   }
 
   return parts.join('\n---\n');

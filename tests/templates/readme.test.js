@@ -30,10 +30,10 @@ describe('generateReadme', () => {
     const config = mergeDefaults({
       title: 'Test',
       author: 'Me',
-      event_name: "Tech'Dej Oxxeo",
+      event_name: 'Tech Meetup',
     });
     const readme = generateReadme(config);
-    expect(readme).toContain("Tech'Dej Oxxeo");
+    expect(readme).toContain('Tech Meetup');
   });
 
   it('should include subtitle when provided', () => {

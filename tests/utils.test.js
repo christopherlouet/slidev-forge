@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { slugify, sanitizeProjectName } from '../src/utils.js';
+import { slugify, sanitizeProjectName, validateHexColor } from '../src/utils.js';
 
 describe('utils', () => {
   describe('slugify', () => {
@@ -42,7 +42,7 @@ describe('utils', () => {
     });
 
     it('should handle apostrophes', () => {
-      expect(slugify("Tech'Dej Oxxeo")).toBe('tech-dej-oxxeo');
+      expect(slugify("Tech'Dej Event")).toBe('tech-dej-event');
     });
   });
 
@@ -85,6 +85,50 @@ describe('utils', () => {
       expect(() => sanitizeProjectName('../../..')).toThrow(
         'Project name cannot be empty',
       );
+    });
+  });
+
+  describe('validateHexColor', () => {
+    it('should accept valid 6-digit hex colors', () => {
+      expect(validateHexColor('#FF00FF')).toBe(true);
+      expect(validateHexColor('#000000')).toBe(true);
+      expect(validateHexColor('#FFFFFF')).toBe(true);
+      expect(validateHexColor('#0969DA')).toBe(true);
+    });
+
+    it('should accept lowercase hex colors', () => {
+      expect(validateHexColor('#ff00ff')).toBe(true);
+      expect(validateHexColor('#abcdef')).toBe(true);
+    });
+
+    it('should accept mixed case hex colors', () => {
+      expect(validateHexColor('#aaBBcc')).toBe(true);
+    });
+
+    it('should reject hex without hash prefix', () => {
+      expect(validateHexColor('FF00FF')).toBe(false);
+    });
+
+    it('should reject invalid hex characters', () => {
+      expect(validateHexColor('#GGGGGG')).toBe(false);
+      expect(validateHexColor('#ZZZZZZ')).toBe(false);
+    });
+
+    it('should reject wrong length', () => {
+      expect(validateHexColor('#FFF')).toBe(false);
+      expect(validateHexColor('#12345')).toBe(false);
+      expect(validateHexColor('#1234567')).toBe(false);
+    });
+
+    it('should reject non-hex formats', () => {
+      expect(validateHexColor('rgb(255,0,0)')).toBe(false);
+      expect(validateHexColor('red')).toBe(false);
+    });
+
+    it('should reject empty and null values', () => {
+      expect(validateHexColor('')).toBe(false);
+      expect(validateHexColor(null)).toBe(false);
+      expect(validateHexColor(undefined)).toBe(false);
     });
   });
 });

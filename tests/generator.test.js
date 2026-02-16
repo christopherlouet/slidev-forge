@@ -123,4 +123,29 @@ describe('generator', () => {
     expect(result.files).toContain('README.md');
     expect(result.files).toContain('styles/index.css');
   });
+
+  it('should create public/ directory with .gitkeep', async () => {
+    const config = mergeDefaults({ title: 'Mon Talk', author: 'Chris' });
+    await generate(config, tempDir);
+
+    const info = await stat(join(tempDir, 'public'));
+    expect(info.isDirectory()).toBe(true);
+  });
+
+  it('should skip git init when noGit option is true', async () => {
+    const config = mergeDefaults({ title: 'Mon Talk', author: 'Chris' });
+    await generate(config, tempDir, { noGit: true });
+
+    await expect(
+      stat(join(tempDir, '.git')),
+    ).rejects.toThrow();
+  });
+
+  it('should init git by default', async () => {
+    const config = mergeDefaults({ title: 'Mon Talk', author: 'Chris' });
+    await generate(config, tempDir);
+
+    const gitDir = await stat(join(tempDir, '.git'));
+    expect(gitDir.isDirectory()).toBe(true);
+  });
 });

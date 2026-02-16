@@ -206,5 +206,22 @@ describe('themes', () => {
     it('should throw when secondary is missing', () => {
       expect(() => buildCustomTheme({ primary: '#FF0000' })).toThrow(/secondary/i);
     });
+
+    it('should throw when primary is not a valid hex color', () => {
+      expect(() => buildCustomTheme({ primary: 'red', secondary: '#0000FF' })).toThrow(/primary.*valid hex/i);
+    });
+
+    it('should throw when secondary is not a valid hex color', () => {
+      expect(() => buildCustomTheme({ primary: '#FF0000', secondary: 'blue' })).toThrow(/secondary.*valid hex/i);
+    });
+
+    it('should throw for 3-digit hex shorthand', () => {
+      expect(() => buildCustomTheme({ primary: '#F00', secondary: '#00F' })).toThrow(/valid hex/i);
+    });
+
+    it('should accept valid lowercase hex colors', () => {
+      const theme = buildCustomTheme({ primary: '#ff0000', secondary: '#0000ff' });
+      expect(theme.h1Colors).toEqual(['#ff0000', '#0000ff']);
+    });
   });
 });

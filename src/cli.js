@@ -1,5 +1,7 @@
-import { resolve } from 'node:path';
-import { stat } from 'node:fs/promises';
+import { resolve, dirname } from 'node:path';
+import { stat, readFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { stringify } from 'yaml';
 import pc from 'picocolors';
 import { loadConfig, mergeDefaults, validateConfig } from './config.js';
@@ -10,22 +12,42 @@ import { slugify } from './utils.js';
 
 export const ALLOWED_PM = ['npm', 'pnpm', 'yarn', 'bun'];
 
+export function validateDestDir(destDir) {
+  const cwd = process.cwd();
+  const resolved = resolve(destDir);
+  if (!resolved.startsWith(cwd)) {
+    throw new Error(`Destination "${resolved}" is outside the current working directory`);
+  }
+  return resolved;
+}
+
 export function parseArgs(args) {
   if (args.includes('--help') || args.includes('-h')) {
     return { mode: 'help' };
   }
 
-  const yamlArg = args.find((a) => a.endsWith('.yaml') || a.endsWith('.yml'));
+  if (args.includes('--version') || args.includes('-v')) {
+    return { mode: 'version' };
+  }
+
+  const flags = {};
+  if (args.includes('--dry-run')) flags.dryRun = true;
+  if (args.includes('--no-git')) flags.noGit = true;
+
+  const positional = args.filter((a) => !a.startsWith('--'));
+
+  const yamlArg = positional.find((a) => a.endsWith('.yaml') || a.endsWith('.yml'));
   if (yamlArg) {
-    const remaining = args.filter((a) => a !== yamlArg);
+    const remaining = positional.filter((a) => a !== yamlArg);
     return {
       mode: 'yaml',
       yamlPath: yamlArg,
       destDir: remaining[0] || undefined,
+      ...flags,
     };
   }
 
-  return { mode: 'interactive', destDir: args[0] };
+  return { mode: 'interactive', destDir: positional[0], ...flags };
 }
 
 export function buildConfigFromArgs(answers) {
@@ -55,6 +77,12 @@ export function buildConfigFromArgs(answers) {
   return config;
 }
 
+export function showVersion() {
+  const pkgPath = resolve(dirname(fileURLToPath(import.meta.url)), '../package.json');
+  const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'));
+  console.log(pkg.version);
+}
+
 export function showHelp() {
   console.log(`
   ${pc.bold('slidev-forge')} - Generateur de projets Slidev
@@ -71,8 +99,8 @@ export function showHelp() {
   }
   console.log(`
   ${pc.bold('Exemple de YAML minimal:')}
-    title: Mon Super Talk
-    author: Christopher Louet
+    title: My Awesome Talk
+    author: Jane Doe
 `);
 }
 
@@ -80,10 +108,7 @@ export async function promptInteractive() {
   const { input, select } = await import('@inquirer/prompts');
 
   const title = await input({ message: 'Titre de la presentation:' });
-  const author = await input({
-    message: 'Auteur:',
-    default: 'Christopher Louet',
-  });
+  const author = await input({ message: 'Auteur:' });
   const visual_theme = await select({
     message: 'Theme visuel:',
     choices: Object.entries(THEMES).map(([key, theme]) => ({
@@ -125,6 +150,11 @@ export async function run(args) {
     return;
   }
 
+  if (parsed.mode === 'version') {
+    showVersion();
+    return;
+  }
+
   let userConfig;
   let destDir;
 
@@ -133,12 +163,21 @@ export async function run(args) {
     validateConfig(userConfig);
     userConfig = mergeDefaults(userConfig);
     destDir = parsed.destDir
-      ? resolve(parsed.destDir)
+      ? validateDestDir(resolve(parsed.destDir))
       : resolve(userConfig.project_name);
   } else {
     const answers = await promptInteractive();
     userConfig = mergeDefaults(buildConfigFromArgs(answers));
     destDir = resolve(userConfig.project_name);
+  }
+
+  // Dry run: show what would be generated and exit
+  if (parsed.dryRun) {
+    console.log(`\n  ${pc.bold('Dry run - fichiers qui seraient generes:')}\n`);
+    console.log(`  ${pc.bold('Dossier:')}   ${pc.cyan(destDir)}`);
+    console.log(`  ${pc.bold('Theme:')}     ${userConfig.visual_theme}`);
+    console.log(`  ${pc.bold('Sections:')}  ${userConfig.sections.length}`);
+    return;
   }
 
   // Check if destination exists and is non-empty
@@ -159,7 +198,7 @@ export async function run(args) {
     // Directory doesn't exist, proceed
   }
 
-  const result = await generate(userConfig, destDir);
+  const result = await generate(userConfig, destDir, { noGit: parsed.noGit });
 
   // Save presentation.yaml in the generated project
   if (parsed.mode === 'interactive') {

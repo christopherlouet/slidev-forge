@@ -1,5 +1,8 @@
-import { describe, it, expect, vi } from 'vitest';
-import { parseArgs, buildConfigFromArgs, showHelp, ALLOWED_PM } from '../src/cli.js';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { resolve, join } from 'node:path';
+import { mkdtemp, rm, writeFile as fsWriteFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { parseArgs, buildConfigFromArgs, showHelp, showVersion, run, ALLOWED_PM, validateDestDir } from '../src/cli.js';
 
 describe('cli', () => {
   describe('parseArgs', () => {
@@ -29,6 +32,52 @@ describe('cli', () => {
     it('should detect help flag', () => {
       const result = parseArgs(['--help']);
       expect(result.mode).toBe('help');
+    });
+
+    it('should detect --version flag', () => {
+      const result = parseArgs(['--version']);
+      expect(result.mode).toBe('version');
+    });
+
+    it('should detect -v flag', () => {
+      const result = parseArgs(['-v']);
+      expect(result.mode).toBe('version');
+    });
+
+    it('should detect --dry-run flag with yaml', () => {
+      const result = parseArgs(['config.yaml', '--dry-run']);
+      expect(result.mode).toBe('yaml');
+      expect(result.dryRun).toBe(true);
+    });
+
+    it('should detect --dry-run flag in interactive mode', () => {
+      const result = parseArgs(['--dry-run']);
+      expect(result.mode).toBe('interactive');
+      expect(result.dryRun).toBe(true);
+    });
+
+    it('should detect --no-git flag with yaml', () => {
+      const result = parseArgs(['config.yaml', '--no-git']);
+      expect(result.mode).toBe('yaml');
+      expect(result.noGit).toBe(true);
+    });
+
+    it('should detect --no-git flag in interactive mode', () => {
+      const result = parseArgs(['--no-git']);
+      expect(result.mode).toBe('interactive');
+      expect(result.noGit).toBe(true);
+    });
+
+    it('should combine --dry-run and --no-git', () => {
+      const result = parseArgs(['config.yaml', '--dry-run', '--no-git']);
+      expect(result.dryRun).toBe(true);
+      expect(result.noGit).toBe(true);
+    });
+
+    it('should not set flags by default', () => {
+      const result = parseArgs(['config.yaml']);
+      expect(result.dryRun).toBeUndefined();
+      expect(result.noGit).toBeUndefined();
     });
   });
 
@@ -105,10 +154,10 @@ describe('cli', () => {
         visual_theme: 'cyberpunk',
         project_name: 'test',
         sections: '',
-        github: 'christopherlouet',
+        github: 'janedoe',
       };
       const config = buildConfigFromArgs(answers);
-      expect(config.github).toBe('christopherlouet');
+      expect(config.github).toBe('janedoe');
     });
 
     it('should not include optional fields when empty', () => {
@@ -126,6 +175,16 @@ describe('cli', () => {
       expect(config).not.toHaveProperty('subtitle');
       expect(config).not.toHaveProperty('event_name');
       expect(config).not.toHaveProperty('github');
+    });
+  });
+
+  describe('showVersion', () => {
+    it('should print the version from package.json', () => {
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      showVersion();
+      const output = logSpy.mock.calls.map((c) => c[0]).join('\n');
+      expect(output).toMatch(/\d+\.\d+\.\d+/);
+      logSpy.mockRestore();
     });
   });
 
@@ -172,6 +231,26 @@ describe('cli', () => {
     });
   });
 
+  describe('validateDestDir', () => {
+    it('should accept a subdirectory of cwd', () => {
+      const cwd = process.cwd();
+      expect(() => validateDestDir(resolve(cwd, 'my-project'))).not.toThrow();
+    });
+
+    it('should accept cwd itself', () => {
+      expect(() => validateDestDir(process.cwd())).not.toThrow();
+    });
+
+    it('should reject paths outside cwd', () => {
+      expect(() => validateDestDir('/tmp/evil-project')).toThrow(/outside.*current/i);
+    });
+
+    it('should reject path traversal attempts', () => {
+      const cwd = process.cwd();
+      expect(() => validateDestDir(resolve(cwd, '../../evil'))).toThrow(/outside.*current/i);
+    });
+  });
+
   describe('ALLOWED_PM', () => {
     it('should export a whitelist of allowed package managers', () => {
       expect(ALLOWED_PM).toBeDefined();
@@ -187,6 +266,72 @@ describe('cli', () => {
 
     it('should not contain unexpected values', () => {
       expect(ALLOWED_PM).toHaveLength(4);
+    });
+  });
+
+  describe('run', () => {
+    let logSpy;
+    let errorSpy;
+
+    beforeEach(() => {
+      logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      logSpy.mockRestore();
+      errorSpy.mockRestore();
+    });
+
+    it('should show help when --help is passed', async () => {
+      await run(['--help']);
+      const output = logSpy.mock.calls.map((c) => c[0]).join('\n');
+      expect(output).toContain('Usage:');
+    });
+
+    it('should show version when --version is passed', async () => {
+      await run(['--version']);
+      const output = logSpy.mock.calls.map((c) => c[0]).join('\n');
+      expect(output).toMatch(/\d+\.\d+\.\d+/);
+    });
+
+    it('should generate project from YAML file with dry-run', async () => {
+      const yamlPath = resolve(import.meta.dirname, 'fixtures/minimal.yaml');
+
+      await run([yamlPath, '--dry-run']);
+
+      const output = logSpy.mock.calls.map((c) => c[0]).join('\n');
+      expect(output).toContain('Dry run');
+      expect(output).toContain('cyberpunk');
+    });
+
+    it('should generate project from full YAML file with dry-run', async () => {
+      const yamlPath = resolve(import.meta.dirname, 'fixtures/full.yaml');
+
+      await run([yamlPath, '--dry-run']);
+
+      const output = logSpy.mock.calls.map((c) => c[0]).join('\n');
+      expect(output).toContain('Dry run');
+      expect(output).toContain('dracula');
+    });
+
+    it('should show dry-run output without generating files', async () => {
+      const yamlPath = resolve(import.meta.dirname, 'fixtures/minimal.yaml');
+      const destDir = resolve(process.cwd(), 'dry-run-test-should-not-exist');
+
+      await run([yamlPath, '--dry-run']);
+
+      const output = logSpy.mock.calls.map((c) => c[0]).join('\n');
+      expect(output).toContain('Dry run');
+    });
+
+    it('should throw for invalid YAML config', async () => {
+      const yamlPath = resolve(import.meta.dirname, 'fixtures/invalid.yaml');
+      await expect(run([yamlPath])).rejects.toThrow();
+    });
+
+    it('should throw for non-existent YAML file', async () => {
+      await expect(run(['/nonexistent.yaml'])).rejects.toThrow();
     });
   });
 });
