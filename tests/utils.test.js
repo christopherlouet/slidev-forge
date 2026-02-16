@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { slugify, sanitizeProjectName, validateHexColor } from '../src/utils.js';
+import { resolve } from 'node:path';
+import { homedir } from 'node:os';
+import { slugify, sanitizeProjectName, validateHexColor, expandHome } from '../src/utils.js';
 
 describe('utils', () => {
   describe('slugify', () => {
@@ -85,6 +87,44 @@ describe('utils', () => {
       expect(() => sanitizeProjectName('../../..')).toThrow(
         'Project name cannot be empty',
       );
+    });
+  });
+
+  describe('expandHome', () => {
+    const home = homedir();
+
+    it('should expand bare ~ to home directory', () => {
+      expect(expandHome('~')).toBe(home);
+    });
+
+    it('should expand ~/path to home + path', () => {
+      expect(expandHome('~/presentations/my-talk')).toBe(
+        resolve(home, 'presentations/my-talk'),
+      );
+    });
+
+    it('should expand ~/single to home + single', () => {
+      expect(expandHome('~/my-talk')).toBe(resolve(home, 'my-talk'));
+    });
+
+    it('should return absolute paths unchanged', () => {
+      expect(expandHome('/tmp/my-project')).toBe('/tmp/my-project');
+    });
+
+    it('should return relative paths unchanged', () => {
+      expect(expandHome('my-project')).toBe('my-project');
+    });
+
+    it('should return dot-relative paths unchanged', () => {
+      expect(expandHome('./my-project')).toBe('./my-project');
+    });
+
+    it('should return parent-relative paths unchanged', () => {
+      expect(expandHome('../other/project')).toBe('../other/project');
+    });
+
+    it('should not expand ~ in the middle of a path', () => {
+      expect(expandHome('/some/~/path')).toBe('/some/~/path');
     });
   });
 

@@ -280,6 +280,21 @@ describe('generator', () => {
       expect(slides).toContain('layout: center');
     });
 
+    it('should generate from preset with explicit sections taking priority', async () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        preset: 'conference',
+        sections: ['Custom A', 'Custom B'],
+      });
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).toContain('# Custom A');
+      expect(slides).toContain('# Custom B');
+      expect(slides).not.toContain('# About');
+    });
+
     it('should generate slides from lightning preset', async () => {
       const config = mergeDefaults({
         title: 'Quick Talk',
@@ -293,6 +308,67 @@ describe('generator', () => {
       expect(slides).toContain('# Problème');
       expect(slides).toContain('# Solution');
       expect(slides).toContain('text-8xl');
+    });
+  });
+
+  describe('v1.6 integration', () => {
+    it('should generate global-bottom.vue when footer is configured', async () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        footer: 'MiXiT 2026 - @christopherlouet',
+      });
+      await generate(config, tempDir);
+
+      const footer = await readFile(join(tempDir, 'global-bottom.vue'), 'utf-8');
+      expect(footer).toContain('MiXiT 2026 - @christopherlouet');
+      expect(footer).toContain('<template>');
+    });
+
+    it('should not generate global-bottom.vue when footer is not configured', async () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me' });
+      await generate(config, tempDir);
+
+      await expect(
+        stat(join(tempDir, 'global-bottom.vue')),
+      ).rejects.toThrow();
+    });
+
+    it('should escape HTML in footer text', async () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        footer: '<script>alert("xss")</script>',
+      });
+      await generate(config, tempDir);
+
+      const footer = await readFile(join(tempDir, 'global-bottom.vue'), 'utf-8');
+      expect(footer).not.toContain('<script>');
+      expect(footer).toContain('&lt;script&gt;');
+    });
+
+    it('should include logo CSS in styles when logo is configured', async () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        logo: 'logo.png',
+      });
+      await generate(config, tempDir);
+
+      const css = await readFile(join(tempDir, 'styles/index.css'), 'utf-8');
+      expect(css).toContain('logo.png');
+    });
+
+    it('should include social links in slides when social is configured', async () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        social: { twitter: 'testuser' },
+      });
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).toContain('twitter.com/testuser');
     });
   });
 });

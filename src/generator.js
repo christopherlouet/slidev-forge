@@ -1,5 +1,6 @@
 import { spawnSync } from 'node:child_process';
 import { writeFile, copyStaticFile } from './writer.js';
+import { escapeHtml } from './utils.js';
 import { generateSlides } from './templates/slides.js';
 import { generatePackageJson } from './templates/package-json.js';
 import { generateReadme } from './templates/readme.js';
@@ -27,6 +28,18 @@ export async function generate(config, destDir, options = {}) {
   const staticFiles = getStaticFiles(config);
   for (const { src, dest } of staticFiles) {
     files.push(await copyStaticFile(src, destDir, dest));
+  }
+
+  // Footer component
+  if (config.footer) {
+    const escapedFooter = escapeHtml(config.footer);
+    const footerVue = `<template>
+  <div class="absolute bottom-1 left-0 right-0 text-center text-xs opacity-40 pointer-events-none">
+    ${escapedFooter}
+  </div>
+</template>
+`;
+    files.push(await writeFile(destDir, 'global-bottom.vue', footerVue));
   }
 
   // Empty directories
