@@ -16,6 +16,13 @@ const translations = {
     comment_add_bio: 'Ajoutez votre bio ici',
     comment_section_content: 'Contenu de la section',
     section_notes: 'Notes pour la section',
+    comment_code_placeholder: 'Votre code ici',
+    comment_diagram_default: 'Modifiez ce diagramme',
+    comment_cover_default: 'Image de couverture',
+    comment_iframe_no_url: 'Ajoutez l\'URL de votre contenu embarqué ici',
+    comment_steps_item: 'Étape',
+    comment_fact_default_value: '10x',
+    comment_fact_default_desc: 'plus rapide',
   },
   en: {
     toc_title: 'Table of Contents',
@@ -31,6 +38,13 @@ const translations = {
     comment_add_bio: 'Add your bio here',
     comment_section_content: 'Section content',
     section_notes: 'Notes for section',
+    comment_code_placeholder: 'Your code here',
+    comment_diagram_default: 'Edit this diagram',
+    comment_cover_default: 'Cover image',
+    comment_iframe_no_url: 'Add your embedded content URL here',
+    comment_steps_item: 'Step',
+    comment_fact_default_value: '10x',
+    comment_fact_default_desc: 'faster',
   },
 };
 

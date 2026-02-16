@@ -7,7 +7,7 @@ import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from './i18n.js';
 const VALID_COLOR_SCHEMAS = ['light', 'dark', 'auto'];
 const ASPECT_RATIO_REGEX = /^\d+\/\d+$/;
 
-export const SECTION_TYPES = ['default', 'two-cols', 'image-right', 'quote', 'qna', 'thanks', 'about'];
+export const SECTION_TYPES = ['default', 'two-cols', 'image-right', 'quote', 'qna', 'thanks', 'about', 'code', 'diagram', 'cover', 'iframe', 'steps', 'fact'];
 
 export function normalizeSections(sections) {
   return sections.map((section) => {

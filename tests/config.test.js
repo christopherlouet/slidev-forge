@@ -279,6 +279,15 @@ describe('config', () => {
       expect(SECTION_TYPES).toContain('thanks');
       expect(SECTION_TYPES).toContain('about');
     });
+
+    it('should contain v1.4 types code, diagram, cover, iframe, steps, fact', () => {
+      expect(SECTION_TYPES).toContain('code');
+      expect(SECTION_TYPES).toContain('diagram');
+      expect(SECTION_TYPES).toContain('cover');
+      expect(SECTION_TYPES).toContain('iframe');
+      expect(SECTION_TYPES).toContain('steps');
+      expect(SECTION_TYPES).toContain('fact');
+    });
   });
 
   describe('normalizeSections', () => {
@@ -329,6 +338,36 @@ describe('config', () => {
         { name: 'Code', type: 'two-cols' },
         { name: 'Références', type: 'default' },
       ]);
+    });
+
+    it('should preserve lang attribute on code sections', () => {
+      const result = normalizeSections([{ name: 'API', type: 'code', lang: 'typescript' }]);
+      expect(result[0]).toEqual({ name: 'API', type: 'code', lang: 'typescript' });
+    });
+
+    it('should preserve url attribute on iframe sections', () => {
+      const result = normalizeSections([{ name: 'Demo', type: 'iframe', url: 'https://example.com' }]);
+      expect(result[0]).toEqual({ name: 'Demo', type: 'iframe', url: 'https://example.com' });
+    });
+
+    it('should preserve image attribute on cover sections', () => {
+      const result = normalizeSections([{ name: 'Chapter', type: 'cover', image: 'https://example.com/bg.jpg' }]);
+      expect(result[0]).toEqual({ name: 'Chapter', type: 'cover', image: 'https://example.com/bg.jpg' });
+    });
+
+    it('should preserve diagram attribute on diagram sections', () => {
+      const result = normalizeSections([{ name: 'Arch', type: 'diagram', diagram: 'sequenceDiagram' }]);
+      expect(result[0]).toEqual({ name: 'Arch', type: 'diagram', diagram: 'sequenceDiagram' });
+    });
+
+    it('should preserve items attribute on steps sections', () => {
+      const result = normalizeSections([{ name: 'Steps', type: 'steps', items: ['A', 'B', 'C'] }]);
+      expect(result[0]).toEqual({ name: 'Steps', type: 'steps', items: ['A', 'B', 'C'] });
+    });
+
+    it('should preserve value and description on fact sections', () => {
+      const result = normalizeSections([{ name: 'Stats', type: 'fact', value: '10x', description: 'faster' }]);
+      expect(result[0]).toEqual({ name: 'Stats', type: 'fact', value: '10x', description: 'faster' });
     });
   });
 

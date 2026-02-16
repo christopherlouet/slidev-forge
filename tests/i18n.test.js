@@ -67,6 +67,38 @@ describe('i18n', () => {
       expect(t('section_notes', 'fr')).toBe('Notes pour la section');
       expect(t('section_notes', 'en')).toBe('Notes for section');
     });
+
+    it('should translate v1.4 code placeholder', () => {
+      expect(t('comment_code_placeholder', 'fr')).not.toBe('comment_code_placeholder');
+      expect(t('comment_code_placeholder', 'en')).not.toBe('comment_code_placeholder');
+    });
+
+    it('should translate v1.4 diagram default', () => {
+      expect(t('comment_diagram_default', 'fr')).not.toBe('comment_diagram_default');
+      expect(t('comment_diagram_default', 'en')).not.toBe('comment_diagram_default');
+    });
+
+    it('should translate v1.4 cover default', () => {
+      expect(t('comment_cover_default', 'fr')).not.toBe('comment_cover_default');
+      expect(t('comment_cover_default', 'en')).not.toBe('comment_cover_default');
+    });
+
+    it('should translate v1.4 iframe no url', () => {
+      expect(t('comment_iframe_no_url', 'fr')).not.toBe('comment_iframe_no_url');
+      expect(t('comment_iframe_no_url', 'en')).not.toBe('comment_iframe_no_url');
+    });
+
+    it('should translate v1.4 steps item', () => {
+      expect(t('comment_steps_item', 'fr')).not.toBe('comment_steps_item');
+      expect(t('comment_steps_item', 'en')).not.toBe('comment_steps_item');
+    });
+
+    it('should translate v1.4 fact defaults', () => {
+      expect(t('comment_fact_default_value', 'fr')).not.toBe('comment_fact_default_value');
+      expect(t('comment_fact_default_value', 'en')).not.toBe('comment_fact_default_value');
+      expect(t('comment_fact_default_desc', 'fr')).not.toBe('comment_fact_default_desc');
+      expect(t('comment_fact_default_desc', 'en')).not.toBe('comment_fact_default_desc');
+    });
   });
 });
 
@@ -87,6 +119,13 @@ function getTranslations(lang) {
     'comment_add_bio',
     'comment_section_content',
     'section_notes',
+    'comment_code_placeholder',
+    'comment_diagram_default',
+    'comment_cover_default',
+    'comment_iframe_no_url',
+    'comment_steps_item',
+    'comment_fact_default_value',
+    'comment_fact_default_desc',
   ];
   const result = {};
   for (const key of keys) {
