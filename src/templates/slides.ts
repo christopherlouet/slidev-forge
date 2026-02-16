@@ -1,5 +1,6 @@
 import { getTheme } from '../themes.js';
 import { t } from '../i18n.js';
+import { getPluginGenerator } from '../plugins.js';
 import type { ResolvedConfig, Section, ThemeDefinition, SocialConfig } from '../types.js';
 
 interface SocialPlatformDef {
@@ -189,6 +190,12 @@ function generateTocSlide(config: ResolvedConfig): string {
 }
 
 function generateSectionSlide(section: Section, config: ResolvedConfig): string {
+  // Check for plugin generator first
+  const pluginGen = getPluginGenerator(section.type);
+  if (pluginGen) {
+    return pluginGen(section, config);
+  }
+
   const lang = config.language;
   const sectionTitle = section.name;
   const sectionType = section.type;

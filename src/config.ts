@@ -3,6 +3,7 @@ import { parse } from 'yaml';
 import { slugify, sanitizeProjectName } from './utils.js';
 import { THEMES, DEFAULT_THEME, TRANSITIONS, DEFAULT_TRANSITION, buildCustomTheme } from './themes.js';
 import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, t } from './i18n.js';
+import { getPluginGenerator } from './plugins.js';
 import type { Section, UserConfig, ResolvedConfig, ExportConfig, OptionsConfig } from './types.js';
 
 const VALID_COLOR_SCHEMAS = ['light', 'dark', 'auto'] as const;
@@ -54,7 +55,7 @@ export function normalizeSections(sections: (string | Section)[]): Section[] {
     if (!section.type) {
       return { ...section, type: 'default' };
     }
-    if (!SECTION_TYPES.includes(section.type)) {
+    if (!SECTION_TYPES.includes(section.type) && !getPluginGenerator(section.type)) {
       console.warn(`Unknown section type "${section.type}", falling back to "default"`);
       return { ...section, type: 'default' };
     }
