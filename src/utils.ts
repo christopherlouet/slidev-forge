@@ -1,13 +1,13 @@
 import { resolve } from 'node:path';
 import { homedir } from 'node:os';
 
-export function expandHome(filepath) {
+export function expandHome(filepath: string): string {
   if (filepath === '~') return homedir();
   if (filepath.startsWith('~/')) return resolve(homedir(), filepath.slice(2));
   return filepath;
 }
 
-export function slugify(text) {
+export function slugify(text: string): string {
   return text
     .toLowerCase()
     .normalize('NFD')
@@ -16,12 +16,12 @@ export function slugify(text) {
     .replace(/^-+|-+$/g, '');
 }
 
-export function validateHexColor(color) {
+export function validateHexColor(color: unknown): boolean {
   if (!color || typeof color !== 'string') return false;
   return /^#[0-9a-fA-F]{6}$/.test(color);
 }
 
-export function escapeHtml(text) {
+export function escapeHtml(text: string): string {
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -30,8 +30,7 @@ export function escapeHtml(text) {
     .replace(/'/g, '&#039;');
 }
 
-export function sanitizeProjectName(name) {
-  // Remove path traversal sequences and dots before slugifying
+export function sanitizeProjectName(name: string): string {
   const cleaned = name.replace(/\.\.\//g, '').replace(/\.\//g, '').replace(/^\.+/, '');
   const result = slugify(cleaned);
   if (!result) {

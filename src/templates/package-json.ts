@@ -1,5 +1,7 @@
-export function generatePackageJson(config) {
-  const dependencies = {
+import type { ResolvedConfig } from '../types.js';
+
+export function generatePackageJson(config: ResolvedConfig): string {
+  const dependencies: Record<string, string> = {
     '@slidev/cli': '^52.0.0',
     '@slidev/theme-default': 'latest',
     vue: '^3.5.27',

@@ -1,6 +1,7 @@
-import { getTheme } from '../themes.js';
+import { getTheme } from '../themes.ts';
+import type { ResolvedConfig } from '../types.js';
 
-export function generateStyles(config) {
+export function generateStyles(config: ResolvedConfig): string {
   const theme = getTheme(config.visual_theme);
   const [color1, color2] = theme.h1Colors;
 

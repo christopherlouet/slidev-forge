@@ -1,7 +1,53 @@
-export const SUPPORTED_LANGUAGES = ['fr', 'en'];
+export const SUPPORTED_LANGUAGES = ['fr', 'en'] as const;
 export const DEFAULT_LANGUAGE = 'fr';
 
-const translations = {
+type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number];
+
+type TranslationKey =
+  | 'toc_title'
+  | 'readme_by'
+  | 'readme_setup'
+  | 'readme_export'
+  | 'comment_left_column'
+  | 'comment_right_column'
+  | 'comment_image_content'
+  | 'comment_replace_quote'
+  | 'comment_quote_author'
+  | 'comment_qna'
+  | 'comment_add_bio'
+  | 'comment_section_content'
+  | 'section_notes'
+  | 'comment_code_placeholder'
+  | 'comment_diagram_default'
+  | 'comment_cover_default'
+  | 'comment_iframe_no_url'
+  | 'comment_steps_item'
+  | 'comment_fact_default_value'
+  | 'comment_fact_default_desc'
+  | 'preset_intro'
+  | 'preset_about'
+  | 'preset_topic'
+  | 'preset_demo'
+  | 'preset_qna'
+  | 'preset_thanks'
+  | 'preset_prereq'
+  | 'preset_module'
+  | 'preset_exercise'
+  | 'preset_recap'
+  | 'preset_resources'
+  | 'preset_problem'
+  | 'preset_solution'
+  | 'preset_cta'
+  | 'preset_market'
+  | 'preset_product'
+  | 'preset_business'
+  | 'preset_team'
+  | 'preset_ask';
+
+type TranslationDictionary = Record<TranslationKey, string>;
+type Translations = Record<SupportedLanguage, TranslationDictionary>;
+
+const translations: Translations = {
   fr: {
     toc_title: 'Sommaire',
     readme_by: 'Par',
@@ -86,8 +132,8 @@ const translations = {
   },
 };
 
-export function t(key, lang = DEFAULT_LANGUAGE) {
-  const effectiveLang = SUPPORTED_LANGUAGES.includes(lang) ? lang : DEFAULT_LANGUAGE;
+export function t(key: string, lang: string = DEFAULT_LANGUAGE): string {
+  const effectiveLang = SUPPORTED_LANGUAGES.includes(lang as SupportedLanguage) ? lang as SupportedLanguage : DEFAULT_LANGUAGE as SupportedLanguage;
   const dict = translations[effectiveLang];
-  return dict[key] ?? key;
+  return dict[key as TranslationKey] ?? key;
 }

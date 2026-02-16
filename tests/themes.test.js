@@ -6,7 +6,7 @@ import {
   DEFAULT_TRANSITION,
   getTheme,
   buildCustomTheme,
-} from '../src/themes.js';
+} from '../src/themes.ts';
 
 const hexPattern = /^#[0-9a-fA-F]{6}$/;
 

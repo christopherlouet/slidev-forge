@@ -1,8 +1,9 @@
-import { t } from '../i18n.js';
+import { t } from '../i18n.ts';
+import type { ResolvedConfig } from '../types.js';
 
-export function generateReadme(config) {
+export function generateReadme(config: ResolvedConfig): string {
   const lang = config.language;
-  const lines = [];
+  const lines: string[] = [];
 
   if (config.event_name) {
     lines.push(`# ${config.event_name}`);

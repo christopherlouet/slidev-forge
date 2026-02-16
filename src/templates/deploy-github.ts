@@ -1,4 +1,6 @@
-export function generateDeployYml(config) {
+import type { ResolvedConfig } from '../types.js';
+
+export function generateDeployYml(config: ResolvedConfig): string {
   return `name: Deploy to GitHub Pages
 
 on:

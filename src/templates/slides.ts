@@ -1,5 +1,5 @@
-import { getTheme } from '../themes.js';
-import { t } from '../i18n.js';
+import { getTheme } from '../themes.ts';
+import { t } from '../i18n.ts';
 
 const SOCIAL_PLATFORMS = {
   twitter: { url: 'https://twitter.com/', icon: 'carbon-logo-twitter' },

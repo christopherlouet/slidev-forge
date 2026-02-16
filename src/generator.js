@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { writeFile, copyStaticFile } from './writer.js';
+import { writeFile, copyStaticFile } from './writer.ts';
 import { escapeHtml } from './utils.js';
 import { generateSlides } from './templates/slides.js';
 import { generatePackageJson } from './templates/package-json.js';

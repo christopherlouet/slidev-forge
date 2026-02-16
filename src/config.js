@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { parse } from 'yaml';
 import { slugify, sanitizeProjectName } from './utils.js';
-import { THEMES, DEFAULT_THEME, TRANSITIONS, DEFAULT_TRANSITION, buildCustomTheme } from './themes.js';
-import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, t } from './i18n.js';
+import { THEMES, DEFAULT_THEME, TRANSITIONS, DEFAULT_TRANSITION, buildCustomTheme } from './themes.ts';
+import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, t } from './i18n.ts';
 
 const VALID_COLOR_SCHEMAS = ['light', 'dark', 'auto'];
 const ASPECT_RATIO_REGEX = /^\d+\/\d+$/;

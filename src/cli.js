@@ -6,8 +6,8 @@ import { stringify } from 'yaml';
 import pc from 'picocolors';
 import { loadConfig, mergeDefaults, validateConfig } from './config.js';
 import { generate } from './generator.js';
-import { writeFile } from './writer.js';
-import { THEMES, DEFAULT_THEME } from './themes.js';
+import { writeFile } from './writer.ts';
+import { THEMES, DEFAULT_THEME } from './themes.ts';
 import { slugify, expandHome } from './utils.js';
 
 export const ALLOWED_PM = ['npm', 'pnpm', 'yarn', 'bun'];

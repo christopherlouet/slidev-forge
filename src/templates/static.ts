@@ -1,9 +1,15 @@
 import { resolve } from 'node:path';
+import type { ResolvedConfig } from '../types.js';
+
+interface StaticFile {
+  src: string;
+  dest: string;
+}
 
 const STATIC_DIR = resolve(import.meta.dirname, '../static');
 
-export function getStaticFiles(config) {
-  const files = [
+export function getStaticFiles(config: ResolvedConfig): StaticFile[] {
+  const files: StaticFile[] = [
     { src: resolve(STATIC_DIR, '.npmrc'), dest: '.npmrc' },
     { src: resolve(STATIC_DIR, '.prettierrc.json'), dest: '.prettierrc.json' },
     { src: resolve(STATIC_DIR, 'gitignore-template'), dest: '.gitignore' },
