@@ -2,12 +2,48 @@ import { readFile } from 'node:fs/promises';
 import { parse } from 'yaml';
 import { slugify, sanitizeProjectName } from './utils.js';
 import { THEMES, DEFAULT_THEME, TRANSITIONS, DEFAULT_TRANSITION, buildCustomTheme } from './themes.js';
-import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from './i18n.js';
+import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, t } from './i18n.js';
 
 const VALID_COLOR_SCHEMAS = ['light', 'dark', 'auto'];
 const ASPECT_RATIO_REGEX = /^\d+\/\d+$/;
 
 export const SECTION_TYPES = ['default', 'two-cols', 'image-right', 'quote', 'qna', 'thanks', 'about', 'code', 'diagram', 'cover', 'iframe', 'steps', 'fact'];
+
+export const PRESETS = {
+  conference: (lang) => [
+    { name: t('preset_intro', lang), type: 'default' },
+    { name: t('preset_about', lang), type: 'about' },
+    { name: t('preset_topic', lang) + ' 1', type: 'default' },
+    { name: t('preset_topic', lang) + ' 2', type: 'default' },
+    { name: t('preset_demo', lang), type: 'code' },
+    { name: t('preset_qna', lang), type: 'qna' },
+    { name: t('preset_thanks', lang), type: 'thanks' },
+  ],
+  workshop: (lang) => [
+    { name: t('preset_intro', lang), type: 'default' },
+    { name: t('preset_prereq', lang), type: 'steps' },
+    { name: t('preset_module', lang) + ' 1', type: 'default' },
+    { name: t('preset_module', lang) + ' 2', type: 'default' },
+    { name: t('preset_exercise', lang), type: 'code' },
+    { name: t('preset_recap', lang), type: 'steps' },
+    { name: t('preset_resources', lang), type: 'default' },
+  ],
+  lightning: (lang) => [
+    { name: t('preset_problem', lang), type: 'default' },
+    { name: t('preset_solution', lang), type: 'default' },
+    { name: t('preset_demo', lang), type: 'code' },
+    { name: t('preset_cta', lang), type: 'fact' },
+  ],
+  pitch: (lang) => [
+    { name: t('preset_problem', lang), type: 'default' },
+    { name: t('preset_solution', lang), type: 'default' },
+    { name: t('preset_market', lang), type: 'fact' },
+    { name: t('preset_product', lang), type: 'default' },
+    { name: t('preset_business', lang), type: 'default' },
+    { name: t('preset_team', lang), type: 'about' },
+    { name: t('preset_ask', lang), type: 'fact' },
+  ],
+};
 
 export function normalizeSections(sections) {
   return sections.map((section) => {
@@ -99,7 +135,18 @@ export function mergeDefaults(userConfig) {
     }
   }
 
-  const rawSections = config.sections || DEFAULTS.sections;
+  // Resolve sections: explicit > preset > defaults
+  let rawSections;
+  if (config.sections) {
+    rawSections = config.sections;
+  } else if (config.preset && PRESETS[config.preset]) {
+    rawSections = PRESETS[config.preset](language);
+  } else {
+    if (config.preset && !PRESETS[config.preset]) {
+      console.warn(`Unknown preset "${config.preset}", ignoring`);
+    }
+    rawSections = DEFAULTS.sections;
+  }
   const sections = normalizeSections(rawSections);
 
   return {

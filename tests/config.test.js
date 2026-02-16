@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { resolve } from 'node:path';
-import { loadConfig, mergeDefaults, validateConfig, normalizeSections, SECTION_TYPES } from '../src/config.js';
+import { loadConfig, mergeDefaults, validateConfig, normalizeSections, SECTION_TYPES, PRESETS } from '../src/config.js';
 import { getTheme } from '../src/themes.js';
 
 const FIXTURES = resolve(import.meta.dirname, 'fixtures');
@@ -567,6 +567,121 @@ describe('config', () => {
       expect(config.addons).toBeUndefined();
       expect(config.favicon).toBeUndefined();
       expect(config.download).toBeUndefined();
+    });
+  });
+
+  describe('PRESETS', () => {
+    it('should export 4 presets', () => {
+      expect(Object.keys(PRESETS)).toEqual(['conference', 'workshop', 'lightning', 'pitch']);
+    });
+
+    it('should return arrays of section objects with name and type', () => {
+      for (const [key, presetFn] of Object.entries(PRESETS)) {
+        const sections = presetFn('fr');
+        expect(Array.isArray(sections)).toBe(true);
+        expect(sections.length).toBeGreaterThan(0);
+        for (const section of sections) {
+          expect(section).toHaveProperty('name');
+          expect(section).toHaveProperty('type');
+        }
+      }
+    });
+
+    it('conference should have 7 sections', () => {
+      const sections = PRESETS.conference('fr');
+      expect(sections).toHaveLength(7);
+    });
+
+    it('workshop should have 7 sections', () => {
+      const sections = PRESETS.workshop('fr');
+      expect(sections).toHaveLength(7);
+    });
+
+    it('lightning should have 4 sections', () => {
+      const sections = PRESETS.lightning('fr');
+      expect(sections).toHaveLength(4);
+    });
+
+    it('pitch should have 7 sections', () => {
+      const sections = PRESETS.pitch('fr');
+      expect(sections).toHaveLength(7);
+    });
+
+    it('conference should use code and qna types', () => {
+      const sections = PRESETS.conference('fr');
+      const types = sections.map((s) => s.type);
+      expect(types).toContain('code');
+      expect(types).toContain('qna');
+      expect(types).toContain('thanks');
+    });
+
+    it('workshop should use steps and code types', () => {
+      const sections = PRESETS.workshop('fr');
+      const types = sections.map((s) => s.type);
+      expect(types).toContain('steps');
+      expect(types).toContain('code');
+    });
+
+    it('lightning should use code and fact types', () => {
+      const sections = PRESETS.lightning('fr');
+      const types = sections.map((s) => s.type);
+      expect(types).toContain('code');
+      expect(types).toContain('fact');
+    });
+
+    it('pitch should use fact and about types', () => {
+      const sections = PRESETS.pitch('fr');
+      const types = sections.map((s) => s.type);
+      expect(types).toContain('fact');
+      expect(types).toContain('about');
+    });
+
+    it('should use translated section names for en', () => {
+      const frSections = PRESETS.conference('fr');
+      const enSections = PRESETS.conference('en');
+      // "À propos" vs "About"
+      expect(frSections[1].name).not.toBe(enSections[1].name);
+    });
+  });
+
+  describe('mergeDefaults preset resolution', () => {
+    it('should use preset sections when no sections provided', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', preset: 'conference' });
+      expect(config.sections.length).toBe(7);
+    });
+
+    it('should prefer explicit sections over preset', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        preset: 'conference',
+        sections: ['A', 'B'],
+      });
+      expect(config.sections).toEqual([
+        { name: 'A', type: 'default' },
+        { name: 'B', type: 'default' },
+      ]);
+    });
+
+    it('should warn and ignore unknown preset', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const config = mergeDefaults({ title: 'Test', author: 'Me', preset: 'unknown' });
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('unknown'));
+      // Falls back to default sections
+      expect(config.sections).toEqual([
+        { name: 'Introduction', type: 'default' },
+        { name: 'Références', type: 'default' },
+      ]);
+      warnSpy.mockRestore();
+    });
+
+    it('should use language for preset section names', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', preset: 'conference', language: 'en' });
+      const names = config.sections.map((s) => s.name);
+      // English names should differ from French
+      const frConfig = mergeDefaults({ title: 'Test', author: 'Me', preset: 'conference', language: 'fr' });
+      const frNames = frConfig.sections.map((s) => s.name);
+      expect(names).not.toEqual(frNames);
     });
   });
 });
