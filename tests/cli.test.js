@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { resolve, join } from 'node:path';
 import { mkdtemp, rm, writeFile as fsWriteFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
-import { parseArgs, buildConfigFromArgs, showHelp, showVersion, run, ALLOWED_PM, validateDestDir } from '../src/cli.js';
+import { homedir } from 'node:os';
+import { parseArgs, buildConfigFromArgs, showHelp, showVersion, run, ALLOWED_PM, resolveDestDir } from '../src/cli.js';
 
 describe('cli', () => {
   describe('parseArgs', () => {
@@ -87,7 +88,7 @@ describe('cli', () => {
         title: 'Mon Talk',
         author: 'Chris',
         visual_theme: 'dracula',
-        project_name: 'mon-talk',
+        dest_dir: './mon-talk',
         sections: 'Intro, Contenu, Références',
       };
       const config = buildConfigFromArgs(answers);
@@ -102,7 +103,7 @@ describe('cli', () => {
         title: 'Test',
         author: 'Me',
         visual_theme: 'cyberpunk',
-        project_name: 'test',
+        dest_dir: './test',
         sections: 'A, B,C ,  D  ',
       };
       const config = buildConfigFromArgs(answers);
@@ -114,7 +115,7 @@ describe('cli', () => {
         title: 'Test',
         author: 'Me',
         visual_theme: 'cyberpunk',
-        project_name: 'test',
+        dest_dir: './test',
         sections: '',
       };
       const config = buildConfigFromArgs(answers);
@@ -126,7 +127,7 @@ describe('cli', () => {
         title: 'Test',
         author: 'Me',
         visual_theme: 'cyberpunk',
-        project_name: 'test',
+        dest_dir: './test',
         sections: '',
         subtitle: 'A great talk',
       };
@@ -139,7 +140,7 @@ describe('cli', () => {
         title: 'Test',
         author: 'Me',
         visual_theme: 'cyberpunk',
-        project_name: 'test',
+        dest_dir: './test',
         sections: '',
         event_name: 'DevFest 2026',
       };
@@ -152,7 +153,7 @@ describe('cli', () => {
         title: 'Test',
         author: 'Me',
         visual_theme: 'cyberpunk',
-        project_name: 'test',
+        dest_dir: './test',
         sections: '',
         github: 'janedoe',
       };
@@ -165,7 +166,7 @@ describe('cli', () => {
         title: 'Test',
         author: 'Me',
         visual_theme: 'cyberpunk',
-        project_name: 'test',
+        dest_dir: './test',
         sections: '',
         subtitle: '',
         event_name: '',
@@ -175,6 +176,82 @@ describe('cli', () => {
       expect(config).not.toHaveProperty('subtitle');
       expect(config).not.toHaveProperty('event_name');
       expect(config).not.toHaveProperty('github');
+    });
+
+    it('should include preset when provided', () => {
+      const answers = {
+        title: 'Test',
+        author: 'Me',
+        visual_theme: 'cyberpunk',
+        dest_dir: './test',
+        sections: '',
+        preset: 'conference',
+      };
+      const config = buildConfigFromArgs(answers);
+      expect(config.preset).toBe('conference');
+      expect(config.sections).toBeUndefined();
+    });
+
+    it('should not include preset when none selected', () => {
+      const answers = {
+        title: 'Test',
+        author: 'Me',
+        visual_theme: 'cyberpunk',
+        dest_dir: './test',
+        sections: 'A, B',
+        preset: 'none',
+      };
+      const config = buildConfigFromArgs(answers);
+      expect(config).not.toHaveProperty('preset');
+      expect(config.sections).toEqual(['A', 'B']);
+    });
+
+    it('should derive project_name from basename of dest_dir', () => {
+      const answers = {
+        title: 'Test',
+        author: 'Me',
+        visual_theme: 'cyberpunk',
+        dest_dir: '~/presentations/my-talk',
+        sections: '',
+      };
+      const config = buildConfigFromArgs(answers);
+      expect(config.project_name).toBe('my-talk');
+    });
+
+    it('should derive project_name from absolute dest_dir', () => {
+      const answers = {
+        title: 'Test',
+        author: 'Me',
+        visual_theme: 'cyberpunk',
+        dest_dir: '/tmp/awesome-talk',
+        sections: '',
+      };
+      const config = buildConfigFromArgs(answers);
+      expect(config.project_name).toBe('awesome-talk');
+    });
+
+    it('should derive project_name from relative dest_dir', () => {
+      const answers = {
+        title: 'Test',
+        author: 'Me',
+        visual_theme: 'cyberpunk',
+        dest_dir: './my-project',
+        sections: '',
+      };
+      const config = buildConfigFromArgs(answers);
+      expect(config.project_name).toBe('my-project');
+    });
+
+    it('should derive project_name from bare directory name', () => {
+      const answers = {
+        title: 'Test',
+        author: 'Me',
+        visual_theme: 'cyberpunk',
+        dest_dir: 'simple-name',
+        sections: '',
+      };
+      const config = buildConfigFromArgs(answers);
+      expect(config.project_name).toBe('simple-name');
     });
   });
 
@@ -231,23 +308,40 @@ describe('cli', () => {
     });
   });
 
-  describe('validateDestDir', () => {
-    it('should accept a subdirectory of cwd', () => {
-      const cwd = process.cwd();
-      expect(() => validateDestDir(resolve(cwd, 'my-project'))).not.toThrow();
+  describe('resolveDestDir', () => {
+    it('should resolve a relative path to an absolute path', () => {
+      const result = resolveDestDir('my-project');
+      expect(result).toBe(resolve('my-project'));
     });
 
-    it('should accept cwd itself', () => {
-      expect(() => validateDestDir(process.cwd())).not.toThrow();
+    it('should keep an absolute path as-is', () => {
+      const result = resolveDestDir('/tmp/my-project');
+      expect(result).toBe('/tmp/my-project');
     });
 
-    it('should reject paths outside cwd', () => {
-      expect(() => validateDestDir('/tmp/evil-project')).toThrow(/outside.*current/i);
+    it('should expand ~ to home directory', () => {
+      const result = resolveDestDir('~');
+      expect(result).toBe(homedir());
     });
 
-    it('should reject path traversal attempts', () => {
-      const cwd = process.cwd();
-      expect(() => validateDestDir(resolve(cwd, '../../evil'))).toThrow(/outside.*current/i);
+    it('should expand ~/path to home + path', () => {
+      const result = resolveDestDir('~/presentations/my-talk');
+      expect(result).toBe(resolve(homedir(), 'presentations/my-talk'));
+    });
+
+    it('should resolve dot-relative paths', () => {
+      const result = resolveDestDir('./my-project');
+      expect(result).toBe(resolve('./my-project'));
+    });
+
+    it('should resolve parent-relative paths', () => {
+      const result = resolveDestDir('../other/project');
+      expect(result).toBe(resolve('../other/project'));
+    });
+
+    it('should allow paths outside cwd', () => {
+      const result = resolveDestDir('/tmp/any-directory');
+      expect(result).toBe('/tmp/any-directory');
     });
   });
 

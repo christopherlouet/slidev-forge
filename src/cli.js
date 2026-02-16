@@ -1,4 +1,4 @@
-import { resolve, dirname } from 'node:path';
+import { resolve, dirname, basename } from 'node:path';
 import { stat, readFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -8,17 +8,12 @@ import { loadConfig, mergeDefaults, validateConfig } from './config.js';
 import { generate } from './generator.js';
 import { writeFile } from './writer.js';
 import { THEMES, DEFAULT_THEME } from './themes.js';
-import { slugify } from './utils.js';
+import { slugify, expandHome } from './utils.js';
 
 export const ALLOWED_PM = ['npm', 'pnpm', 'yarn', 'bun'];
 
-export function validateDestDir(destDir) {
-  const cwd = process.cwd();
-  const resolved = resolve(destDir);
-  if (!resolved.startsWith(cwd)) {
-    throw new Error(`Destination "${resolved}" is outside the current working directory`);
-  }
-  return resolved;
+export function resolveDestDir(rawPath) {
+  return resolve(expandHome(rawPath));
 }
 
 export function parseArgs(args) {
@@ -51,18 +46,22 @@ export function parseArgs(args) {
 }
 
 export function buildConfigFromArgs(answers) {
-  const sections =
-    answers.sections && answers.sections.trim()
-      ? answers.sections.split(',').map((s) => s.trim()).filter(Boolean)
-      : ['Introduction', 'Références'];
-
   const config = {
     title: answers.title,
     author: answers.author,
     visual_theme: answers.visual_theme,
-    project_name: answers.project_name,
-    sections,
+    project_name: basename(resolveDestDir(answers.dest_dir)),
   };
+
+  // If a preset is selected (not 'none'), use it instead of sections
+  if (answers.preset && answers.preset !== 'none') {
+    config.preset = answers.preset;
+  } else {
+    config.sections =
+      answers.sections && answers.sections.trim()
+        ? answers.sections.split(',').map((s) => s.trim()).filter(Boolean)
+        : ['Introduction', 'Références'];
+  }
 
   if (answers.subtitle && answers.subtitle.trim()) {
     config.subtitle = answers.subtitle.trim();
@@ -118,9 +117,21 @@ export async function promptInteractive() {
     default: DEFAULT_THEME,
   });
 
-  const project_name = await input({
-    message: 'Nom du projet (dossier):',
-    default: slugify(title),
+  const preset = await select({
+    message: 'Preset de presentation:',
+    choices: [
+      { name: 'Aucun (sections manuelles)', value: 'none' },
+      { name: 'Conference (30-45 min)', value: 'conference' },
+      { name: 'Workshop (atelier pratique)', value: 'workshop' },
+      { name: 'Lightning talk (5 min)', value: 'lightning' },
+      { name: 'Pitch deck', value: 'pitch' },
+    ],
+    default: 'none',
+  });
+
+  const dest_dir = await input({
+    message: 'Dossier de destination:',
+    default: `./${slugify(title)}`,
   });
   const subtitle = await input({
     message: 'Sous-titre (optionnel, Entree pour passer):',
@@ -134,12 +145,16 @@ export async function promptInteractive() {
     message: 'Identifiant GitHub (optionnel, Entree pour passer):',
     default: '',
   });
-  const sections = await input({
-    message: 'Sections (separees par des virgules):',
-    default: 'Introduction, Références',
-  });
 
-  return { title, author, visual_theme, project_name, subtitle, event_name, github, sections };
+  let sections = '';
+  if (preset === 'none') {
+    sections = await input({
+      message: 'Sections (separees par des virgules):',
+      default: 'Introduction, Références',
+    });
+  }
+
+  return { title, author, visual_theme, preset, dest_dir, subtitle, event_name, github, sections };
 }
 
 export async function run(args) {
@@ -163,12 +178,12 @@ export async function run(args) {
     validateConfig(userConfig);
     userConfig = mergeDefaults(userConfig);
     destDir = parsed.destDir
-      ? validateDestDir(resolve(parsed.destDir))
+      ? resolveDestDir(parsed.destDir)
       : resolve(userConfig.project_name);
   } else {
     const answers = await promptInteractive();
     userConfig = mergeDefaults(buildConfigFromArgs(answers));
-    destDir = resolve(userConfig.project_name);
+    destDir = resolveDestDir(answers.dest_dir);
   }
 
   // Dry run: show what would be generated and exit
@@ -247,6 +262,6 @@ export async function run(args) {
   }
 
   console.log(`\n  ${pc.bold('Prochaines etapes:')}`);
-  console.log(`    ${pc.cyan(`cd ${userConfig.project_name}`)}`);
+  console.log(`    ${pc.cyan(`cd ${destDir}`)}`);
   console.log(`    ${pc.cyan('npm run dev')}\n`);
 }
