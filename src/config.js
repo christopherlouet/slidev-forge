@@ -2,6 +2,10 @@ import { readFile } from 'node:fs/promises';
 import { parse } from 'yaml';
 import { slugify, sanitizeProjectName } from './utils.js';
 import { THEMES, DEFAULT_THEME, TRANSITIONS, DEFAULT_TRANSITION, buildCustomTheme } from './themes.js';
+import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE } from './i18n.js';
+
+const VALID_COLOR_SCHEMAS = ['light', 'dark', 'auto'];
+const ASPECT_RATIO_REGEX = /^\d+\/\d+$/;
 
 export const SECTION_TYPES = ['default', 'two-cols', 'image-right', 'quote', 'qna', 'thanks', 'about'];
 
@@ -25,6 +29,7 @@ const DEFAULTS = {
   slidev_theme: 'seriph',
   visual_theme: 'cyberpunk',
   transition: 'slide-left',
+  language: DEFAULT_LANGUAGE,
   sections: ['Introduction', 'Références'],
   deploy: ['github-pages'],
   export: {
@@ -62,23 +67,56 @@ export function mergeDefaults(userConfig) {
     transition = DEFAULT_TRANSITION;
   }
 
-  const rawSections = userConfig.sections || DEFAULTS.sections;
+  // Validate language
+  let language = userConfig.language || DEFAULTS.language;
+  if (!SUPPORTED_LANGUAGES.includes(language)) {
+    console.warn(`Unsupported language "${language}", falling back to "${DEFAULT_LANGUAGE}"`);
+    language = DEFAULT_LANGUAGE;
+  }
+
+  // Validate aspect_ratio (must match "N/N" pattern)
+  const config = { ...userConfig };
+  if (config.aspect_ratio !== undefined) {
+    if (typeof config.aspect_ratio !== 'string' || !ASPECT_RATIO_REGEX.test(config.aspect_ratio)) {
+      console.warn(`Invalid aspect_ratio "${config.aspect_ratio}", ignoring`);
+      delete config.aspect_ratio;
+    }
+  }
+
+  // Validate color_schema
+  if (config.color_schema !== undefined) {
+    if (!VALID_COLOR_SCHEMAS.includes(config.color_schema)) {
+      console.warn(`Invalid color_schema "${config.color_schema}", ignoring`);
+      delete config.color_schema;
+    }
+  }
+
+  // Validate addons (must be an array)
+  if (config.addons !== undefined) {
+    if (!Array.isArray(config.addons)) {
+      console.warn(`Invalid addons: expected an array, ignoring`);
+      delete config.addons;
+    }
+  }
+
+  const rawSections = config.sections || DEFAULTS.sections;
   const sections = normalizeSections(rawSections);
 
   return {
     ...DEFAULTS,
-    ...userConfig,
+    ...config,
     visual_theme: visualTheme,
     transition,
+    language,
     sections,
-    project_name: sanitizeProjectName(userConfig.project_name || slugify(userConfig.title)),
+    project_name: sanitizeProjectName(config.project_name || slugify(config.title)),
     export: {
       ...DEFAULTS.export,
-      ...(userConfig.export || {}),
+      ...(config.export || {}),
     },
     options: {
       ...DEFAULTS.options,
-      ...(userConfig.options || {}),
+      ...(config.options || {}),
     },
   };
 }

@@ -1,0 +1,38 @@
+title: "Advanced Web Architecture"
+subtitle: "From Monolith to Microservices"
+author: "Jane Smith"
+github: "janesmith"
+event_name: "DevConf 2026"
+slidev_theme: apple-basic
+visual_theme: dracula
+transition: fade
+language: en
+fonts:
+  sans: Inter
+  mono: Fira Code
+  serif: Playfair Display
+line_numbers: true
+aspect_ratio: '4/3'
+color_schema: dark
+favicon: logo.png
+download: true
+addons:
+  - slidev-addon-qrcode
+sections:
+  - name: Getting Started
+  - name: Architecture
+    type: two-cols
+  - name: Demo
+    type: image-right
+  - name: Key Quote
+    type: quote
+  - name: Q&A
+    type: qna
+  - name: Thanks
+    type: thanks
+deploy:
+  - github-pages
+export:
+  format: pdf
+  dark: true
+  with_clicks: true

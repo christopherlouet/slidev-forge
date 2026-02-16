@@ -409,4 +409,125 @@ describe('config', () => {
       expect(() => validateConfig({ title: 'Test', author: '   ' })).toThrow(/author/i);
     });
   });
+
+  describe('mergeDefaults v1.3 fields', () => {
+    it('should default language to fr', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me' });
+      expect(config.language).toBe('fr');
+    });
+
+    it('should keep valid language unchanged', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', language: 'en' });
+      expect(config.language).toBe('en');
+    });
+
+    it('should fallback invalid language to fr with warning', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const config = mergeDefaults({ title: 'Test', author: 'Me', language: 'ja' });
+      expect(config.language).toBe('fr');
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('ja'));
+      warnSpy.mockRestore();
+    });
+
+    it('should pass through valid aspect_ratio', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', aspect_ratio: '4/3' });
+      expect(config.aspect_ratio).toBe('4/3');
+    });
+
+    it('should accept 16/9 aspect_ratio', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', aspect_ratio: '16/9' });
+      expect(config.aspect_ratio).toBe('16/9');
+    });
+
+    it('should delete invalid aspect_ratio with warning', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const config = mergeDefaults({ title: 'Test', author: 'Me', aspect_ratio: 'abc' });
+      expect(config.aspect_ratio).toBeUndefined();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('abc'));
+      warnSpy.mockRestore();
+    });
+
+    it('should delete numeric aspect_ratio with warning', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const config = mergeDefaults({ title: 'Test', author: 'Me', aspect_ratio: 1.77 });
+      expect(config.aspect_ratio).toBeUndefined();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('1.77'));
+      warnSpy.mockRestore();
+    });
+
+    it('should pass through valid color_schema light', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', color_schema: 'light' });
+      expect(config.color_schema).toBe('light');
+    });
+
+    it('should pass through valid color_schema dark', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', color_schema: 'dark' });
+      expect(config.color_schema).toBe('dark');
+    });
+
+    it('should pass through valid color_schema auto', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', color_schema: 'auto' });
+      expect(config.color_schema).toBe('auto');
+    });
+
+    it('should delete invalid color_schema with warning', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const config = mergeDefaults({ title: 'Test', author: 'Me', color_schema: 'blue' });
+      expect(config.color_schema).toBeUndefined();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('blue'));
+      warnSpy.mockRestore();
+    });
+
+    it('should pass through valid addons array', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        addons: ['slidev-addon-qrcode'],
+      });
+      expect(config.addons).toEqual(['slidev-addon-qrcode']);
+    });
+
+    it('should delete non-array addons with warning', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const config = mergeDefaults({ title: 'Test', author: 'Me', addons: 'qrcode' });
+      expect(config.addons).toBeUndefined();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('addons'));
+      warnSpy.mockRestore();
+    });
+
+    it('should pass through fonts object', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        fonts: { sans: 'Inter', mono: 'Fira Code' },
+      });
+      expect(config.fonts).toEqual({ sans: 'Inter', mono: 'Fira Code' });
+    });
+
+    it('should pass through line_numbers boolean', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', line_numbers: true });
+      expect(config.line_numbers).toBe(true);
+    });
+
+    it('should pass through favicon string', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', favicon: 'logo.png' });
+      expect(config.favicon).toBe('logo.png');
+    });
+
+    it('should pass through download boolean', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', download: true });
+      expect(config.download).toBe(true);
+    });
+
+    it('should not include optional fields when not specified', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me' });
+      expect(config.fonts).toBeUndefined();
+      expect(config.line_numbers).toBeUndefined();
+      expect(config.aspect_ratio).toBeUndefined();
+      expect(config.color_schema).toBeUndefined();
+      expect(config.addons).toBeUndefined();
+      expect(config.favicon).toBeUndefined();
+      expect(config.download).toBeUndefined();
+    });
+  });
 });
