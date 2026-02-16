@@ -99,6 +99,20 @@ describe('i18n', () => {
       expect(t('comment_fact_default_desc', 'fr')).not.toBe('comment_fact_default_desc');
       expect(t('comment_fact_default_desc', 'en')).not.toBe('comment_fact_default_desc');
     });
+
+    it('should translate v1.5 preset section names', () => {
+      const presetKeys = [
+        'preset_intro', 'preset_about', 'preset_topic', 'preset_demo',
+        'preset_qna', 'preset_thanks', 'preset_prereq', 'preset_module',
+        'preset_exercise', 'preset_recap', 'preset_resources', 'preset_problem',
+        'preset_solution', 'preset_cta', 'preset_market', 'preset_product',
+        'preset_business', 'preset_team', 'preset_ask',
+      ];
+      for (const key of presetKeys) {
+        expect(t(key, 'fr')).not.toBe(key);
+        expect(t(key, 'en')).not.toBe(key);
+      }
+    });
   });
 });
 
@@ -126,6 +140,25 @@ function getTranslations(lang) {
     'comment_steps_item',
     'comment_fact_default_value',
     'comment_fact_default_desc',
+    'preset_intro',
+    'preset_about',
+    'preset_topic',
+    'preset_demo',
+    'preset_qna',
+    'preset_thanks',
+    'preset_prereq',
+    'preset_module',
+    'preset_exercise',
+    'preset_recap',
+    'preset_resources',
+    'preset_problem',
+    'preset_solution',
+    'preset_cta',
+    'preset_market',
+    'preset_product',
+    'preset_business',
+    'preset_team',
+    'preset_ask',
   ];
   const result = {};
   for (const key of keys) {
