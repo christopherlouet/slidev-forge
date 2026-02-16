@@ -250,4 +250,49 @@ describe('generator', () => {
       expect(slides).toContain('uptime');
     });
   });
+
+  describe('v1.5 integration', () => {
+    it('should generate slides from conference preset', async () => {
+      const config = mergeDefaults({
+        title: 'Conference Talk',
+        author: 'Jane',
+        preset: 'conference',
+        language: 'en',
+      });
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).toContain('# Introduction');
+      expect(slides).toContain('# About');
+      expect(slides).toContain('# Demo');
+      expect(slides).toContain('# Q&A');
+      expect(slides).toContain('# Thank you');
+    });
+
+    it('should generate from preset-conference.yaml fixture', async () => {
+      const { loadConfig } = await import('../src/config.js');
+      const userConfig = await loadConfig(join(import.meta.dirname, 'fixtures/preset-conference.yaml'));
+      const config = mergeDefaults(userConfig);
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).toContain('# Introduction');
+      expect(slides).toContain('layout: center');
+    });
+
+    it('should generate slides from lightning preset', async () => {
+      const config = mergeDefaults({
+        title: 'Quick Talk',
+        author: 'Me',
+        preset: 'lightning',
+        language: 'fr',
+      });
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).toContain('# Problème');
+      expect(slides).toContain('# Solution');
+      expect(slides).toContain('text-8xl');
+    });
+  });
 });
