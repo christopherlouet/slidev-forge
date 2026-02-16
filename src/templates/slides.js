@@ -1,6 +1,33 @@
 import { getTheme } from '../themes.js';
 import { t } from '../i18n.js';
 
+const SOCIAL_PLATFORMS = {
+  twitter: { url: 'https://twitter.com/', icon: 'carbon-logo-twitter' },
+  linkedin: { url: 'https://linkedin.com/in/', icon: 'carbon-logo-linkedin' },
+  github: { url: 'https://github.com/', icon: 'carbon-logo-github' },
+  website: { url: '', icon: 'carbon-link' },
+  youtube: { url: 'https://youtube.com/@', icon: 'carbon-logo-youtube' },
+  mastodon: { url: '', icon: 'carbon-user-favorite' },
+  bluesky: { url: 'https://bsky.app/profile/', icon: 'carbon-cloud' },
+  instagram: { url: 'https://instagram.com/', icon: 'carbon-logo-instagram' },
+  email: { url: 'mailto:', icon: 'carbon-email' },
+};
+
+function generateSocialLinks(social) {
+  if (!social || typeof social !== 'object') return '';
+  const links = [];
+  for (const [platform, handle] of Object.entries(social)) {
+    const def = SOCIAL_PLATFORMS[platform];
+    if (!def) continue;
+    const href = handle.startsWith('http') || handle.includes('@') ? `${def.url}${handle}` : `${def.url}${handle}`;
+    links.push(
+      `  <a href="${href}" target="_blank" class="text-xl slidev-icon-btn opacity-50 !border-none">\n    <${def.icon} />\n  </a>`,
+    );
+  }
+  if (links.length === 0) return '';
+  return `\n<div class="abs-br m-6 flex gap-2">\n${links.join('\n')}\n</div>`;
+}
+
 export function generateSlides(config) {
   const theme = getTheme(config.visual_theme);
   const parts = [];
@@ -31,6 +58,11 @@ function generateFrontmatter(config) {
     `transition: ${config.transition}`,
     'mdc: true',
   ];
+
+  // v1.6 slideNumber
+  if (config.slide_numbers === true) {
+    lines.push('slideNumber: true');
+  }
 
   // v1.3 conditional fields
   if (config.line_numbers === true) {
@@ -98,7 +130,10 @@ function generateTitleSlide(config, theme) {
     lines.push(config.subtitle);
   }
 
-  if (config.github) {
+  const socialHtml = generateSocialLinks(config.social);
+  if (socialHtml) {
+    lines.push(socialHtml);
+  } else if (config.github) {
     lines.push('');
     lines.push('<div class="abs-br m-6 flex gap-2">');
     lines.push(
@@ -194,7 +229,10 @@ function generateSectionSlide(section, config) {
     lines.push(`# ${sectionTitle}`);
     lines.push('');
     lines.push(`${config.author}`);
-    if (config.github) {
+    const thanksSocial = generateSocialLinks(config.social);
+    if (thanksSocial) {
+      lines.push(thanksSocial);
+    } else if (config.github) {
       lines.push('');
       lines.push(`[github.com/${config.github}](https://github.com/${config.github})`);
     }

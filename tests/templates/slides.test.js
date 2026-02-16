@@ -719,6 +719,76 @@ describe('generateSlides', () => {
       });
     });
 
+    describe('v1.6 social links', () => {
+      it('should include social links on title slide when social is configured', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          social: { twitter: 'myuser', linkedin: 'myprofile' },
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('carbon-logo-twitter');
+        expect(slides).toContain('twitter.com/myuser');
+        expect(slides).toContain('carbon-logo-linkedin');
+        expect(slides).toContain('linkedin.com/in/myprofile');
+      });
+
+      it('should not include social links when social is not configured', () => {
+        const config = mergeDefaults({ title: 'Test', author: 'Me' });
+        const slides = generateSlides(config);
+        expect(slides).not.toContain('carbon-logo-twitter');
+      });
+
+      it('should include social links on thanks slide', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          social: { github: 'myuser' },
+          sections: [{ name: 'Merci', type: 'thanks' }],
+        });
+        const slides = generateSlides(config);
+        const parts = slides.split('\n---\n');
+        const thanksSlide = parts.find((p) => p.includes('# Merci'));
+        expect(thanksSlide).toContain('carbon-logo-github');
+      });
+
+      it('should support website with full URL', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          social: { website: 'https://example.com' },
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('https://example.com');
+        expect(slides).toContain('carbon-link');
+      });
+
+      it('should support email', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          social: { email: 'user@example.com' },
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('mailto:user@example.com');
+        expect(slides).toContain('carbon-email');
+      });
+    });
+
+    describe('v1.6 slideNumber', () => {
+      it('should include slideNumber in frontmatter when configured', () => {
+        const config = mergeDefaults({ title: 'Test', author: 'Me', slide_numbers: true });
+        const slides = generateSlides(config);
+        expect(slides).toContain('slideNumber: true');
+      });
+
+      it('should not include slideNumber when not configured', () => {
+        const config = mergeDefaults({ title: 'Test', author: 'Me' });
+        const slides = generateSlides(config);
+        expect(slides).not.toContain('slideNumber');
+      });
+    });
+
     describe('v1.4 mixed with existing types', () => {
       it('should generate all v1.4 types alongside existing types', () => {
         const config = mergeDefaults({
