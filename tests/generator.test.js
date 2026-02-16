@@ -203,4 +203,51 @@ describe('generator', () => {
       expect(readme).toContain('By **Jane**');
     });
   });
+
+  describe('v1.4 integration', () => {
+    it('should generate slides with all 6 new section types', async () => {
+      const config = mergeDefaults({
+        title: 'V1.4 Demo',
+        author: 'Tester',
+        language: 'en',
+        sections: [
+          { name: 'Code', type: 'code', lang: 'python' },
+          { name: 'Diagram', type: 'diagram' },
+          { name: 'Cover', type: 'cover', image: 'https://example.com/bg.jpg' },
+          { name: 'Iframe', type: 'iframe', url: 'https://codepen.io/test' },
+          { name: 'Steps', type: 'steps', items: ['A', 'B'] },
+          { name: 'Fact', type: 'fact', value: '42', description: 'the answer' },
+        ],
+      });
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).toContain('```python');
+      expect(slides).toContain('```mermaid');
+      expect(slides).toContain('layout: cover');
+      expect(slides).toContain('background: https://example.com/bg.jpg');
+      expect(slides).toContain('<iframe');
+      expect(slides).toContain('<v-clicks>');
+      expect(slides).toContain('- A');
+      expect(slides).toContain('text-8xl');
+      expect(slides).toContain('42');
+      expect(slides).toContain('the answer');
+    });
+
+    it('should generate from v14-sections.yaml fixture', async () => {
+      const { loadConfig } = await import('../src/config.js');
+      const userConfig = await loadConfig(join(import.meta.dirname, 'fixtures/v14-sections.yaml'));
+      const config = mergeDefaults(userConfig);
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).toContain('```typescript');
+      expect(slides).toContain('sequenceDiagram');
+      expect(slides).toContain('background: https://example.com/bg.jpg');
+      expect(slides).toContain('https://codepen.io/example');
+      expect(slides).toContain('- Fast');
+      expect(slides).toContain('99.9%');
+      expect(slides).toContain('uptime');
+    });
+  });
 });

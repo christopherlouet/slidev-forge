@@ -1,0 +1,32 @@
+title: "V1.4 Section Types Demo"
+author: "Test Author"
+language: en
+sections:
+  - name: Introduction
+    type: default
+  - name: API Overview
+    type: code
+    lang: typescript
+  - name: Architecture
+    type: diagram
+    diagram: sequenceDiagram
+  - name: Chapter 2
+    type: cover
+    image: https://example.com/bg.jpg
+  - name: Live Demo
+    type: iframe
+    url: https://codepen.io/example
+  - name: Key Benefits
+    type: steps
+    items:
+      - Fast
+      - Scalable
+      - Simple
+  - name: Performance
+    type: fact
+    value: "99.9%"
+    description: uptime
+  - name: Q&A
+    type: qna
+  - name: Thanks
+    type: thanks
