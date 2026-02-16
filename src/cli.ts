@@ -17,6 +17,8 @@ export function resolveDestDir(rawPath: string): string {
   return resolve(expandHome(rawPath));
 }
 
+const SUBCOMMANDS = ['validate', 'add', 'theme', 'config'] as const;
+
 export function parseArgs(args: string[]): ParsedArgs {
   if (args.includes('--help') || args.includes('-h')) {
     return { mode: 'help' };
@@ -24,6 +26,16 @@ export function parseArgs(args: string[]): ParsedArgs {
 
   if (args.includes('--version') || args.includes('-v')) {
     return { mode: 'version' };
+  }
+
+  // Check for subcommands
+  const firstArg = args[0];
+  if (firstArg && (SUBCOMMANDS as readonly string[]).includes(firstArg)) {
+    return {
+      mode: 'subcommand',
+      subcommand: firstArg,
+      subcommandArgs: args.slice(1),
+    };
   }
 
   const flags: { dryRun?: boolean; noGit?: boolean } = {};
@@ -181,6 +193,35 @@ export async function run(args: string[]): Promise<void> {
   if (parsed.mode === 'version') {
     showVersion();
     return;
+  }
+
+  if (parsed.mode === 'subcommand') {
+    const subArgs = parsed.subcommandArgs || [];
+    switch (parsed.subcommand) {
+      case 'validate': {
+        const { runValidate } = await import('./commands/validate.js');
+        await runValidate(subArgs);
+        return;
+      }
+      case 'add': {
+        const { runAdd } = await import('./commands/add.js');
+        await runAdd(subArgs);
+        return;
+      }
+      case 'theme': {
+        const { runTheme } = await import('./commands/theme.js');
+        await runTheme(subArgs);
+        return;
+      }
+      case 'config': {
+        const { runConfig } = await import('./commands/config.js');
+        await runConfig(subArgs);
+        return;
+      }
+      default:
+        console.error(`Unknown subcommand: ${parsed.subcommand}`);
+        return;
+    }
   }
 
   let userConfig: ResolvedConfig;

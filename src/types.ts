@@ -126,11 +126,13 @@ export interface GenerateOptions {
 }
 
 export interface ParsedArgs {
-  mode: 'help' | 'version' | 'yaml' | 'interactive';
+  mode: 'help' | 'version' | 'yaml' | 'interactive' | 'subcommand';
   yamlPath?: string;
   destDir?: string;
   dryRun?: boolean;
   noGit?: boolean;
+  subcommand?: string;
+  subcommandArgs?: string[];
 }
 
 export interface SectionPlugin {
