@@ -1,4 +1,13 @@
 export function generatePackageJson(config) {
+  const dependencies = {
+    '@slidev/cli': '^0.50.0',
+    '@slidev/theme-default': 'latest',
+    vue: '^3.5.10',
+  };
+  if (config.slidev_theme !== 'default') {
+    dependencies[`@slidev/theme-${config.slidev_theme}`] = 'latest';
+  }
+
   const pkg = {
     name: config.project_name,
     type: 'module',
@@ -8,12 +17,7 @@ export function generatePackageJson(config) {
       build: 'slidev build',
       export: 'slidev export',
     },
-    dependencies: {
-      '@slidev/cli': '^0.50.0',
-      '@slidev/theme-default': 'latest',
-      [`@slidev/theme-${config.slidev_theme}`]: 'latest',
-      vue: '^3.5.10',
-    },
+    dependencies,
     devDependencies: {
       'playwright-chromium': '^1.47.2',
       prettier: '^3.3.3',

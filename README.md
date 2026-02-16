@@ -10,7 +10,7 @@ Scaffold complete [Slidev](https://sli.dev) presentation projects from a YAML co
 npx slidev-forge
 ```
 
-You'll be guided through a few questions (title, author, visual theme, sections) and get a ready-to-use project.
+You'll be guided through a few questions (title, author, visual theme, sections, subtitle, event, GitHub) and get a ready-to-use project.
 
 ### From a YAML file
 
@@ -36,45 +36,101 @@ event_name: "Tech Meetup"
 
 slidev_theme: seriph
 visual_theme: dracula
-transition: slide-left
+transition: fade
 
 sections:
-  - Introduction
-  - Oh My Zsh
-  - tmux
-  - fzf
-  - References
+  - name: Introduction
+  - name: Oh My Zsh
+    type: two-cols
+  - name: tmux
+    type: image-right
+  - name: References
+    type: quote
+  - name: Q&A
+    type: qna
+  - name: Merci
+    type: thanks
 
 deploy:
   - github-pages
-  - vercel
-  - netlify
 
 export:
   format: pdf
   dark: false
   with_clicks: false
+
+options:
+  snippets: true
+  components: true
 ```
 
 ## Visual Themes
 
 | Theme | Description | Colors |
 |-------|-------------|--------|
-| **cyberpunk** | Neon lights in the rain - Night City aesthetic | `#FF00FF` / `#00FFFF` |
-| **matrix** | Digital rain - Classic green terminal | `#00FF41` / `#008F11` |
+| **cyberpunk** (default) | Neon lights in the rain - Night City aesthetic | `#FF00FF` / `#00FFFF` |
+| **matrix** | Digital rain - Enhanced terminal green with cyan accents | `#00FF41` / `#00D9FF` |
 | **dracula** | Dark theme with vibrant colors | `#BD93F9` / `#FF79C6` |
 | **catppuccin** | Soothing pastel theme | `#CBA6F7` / `#89B4FA` |
 | **nord** | Arctic, north-bluish color palette | `#88C0D0` / `#5E81AC` |
 | **gruvbox** | Retro groove color scheme | `#FABD2F` / `#FE8019` |
 | **tokyo-night** | Clean dark theme inspired by Tokyo at night | `#7AA2F7` / `#BB9AF7` |
+| **github-light** | Clean light theme based on GitHub palette | `#0969DA` / `#1F6FEB` |
+| **rose-pine** | Warm dark theme with rose and pine tones | `#EA9A97` / `#C4A7E7` |
+| **one-dark-pro** | Classic VS Code dark theme | `#61AFEF` / `#C678DD` |
+| **custom** | User-defined colors | Your choice |
 
-Default: **cyberpunk**
+### Custom Theme
+
+Define your own colors:
+
+```yaml
+visual_theme: custom
+colors:
+  primary: "#FF5733"
+  secondary: "#33C1FF"
+```
+
+## Section Types
+
+Each section can specify a layout type:
+
+| Type | Description | Layout |
+|------|-------------|--------|
+| `default` | Standard content slide | Default |
+| `two-cols` | Two-column layout | `layout: two-cols` |
+| `image-right` | Content left, image right | `layout: image-right` |
+| `quote` | Blockquote with author | Default |
+| `qna` | Centered Q&A slide | `layout: center` |
+| `thanks` | Thank you slide with author & GitHub link | `layout: center` |
+| `about` | About the author slide | Default |
+
+Sections can also be simple strings (they default to `type: default`):
+
+```yaml
+sections:
+  - Introduction
+  - Demo
+```
+
+All section slides include presenter notes placeholders.
+
+## Transitions
+
+Available transitions: `slide-left` (default), `slide-up`, `fade`, `zoom`, `none`
 
 ## Generated Project
 
 ```
 my-talk/
 ├── .github/workflows/deploy.yml   # GitHub Pages deployment
+├── components/
+│   ├── Counter.vue                # Interactive counter component
+│   └── CodeComparison.vue         # Side-by-side code comparison
+├── layouts/
+│   ├── two-cols-header.vue        # Two columns with header
+│   ├── image-right.vue            # Content/image 60/40 split
+│   └── quote.vue                  # Centered blockquote
 ├── dist/.gitkeep
 ├── docs/.gitkeep
 ├── public/
@@ -83,12 +139,12 @@ my-talk/
 ├── .gitignore
 ├── .npmrc
 ├── .prettierrc.json
-├── netlify.toml                    # Netlify config
-├── vercel.json                     # Vercel config
 ├── package.json
 ├── README.md
 └── slides.md                       # Presentation content
 ```
+
+Deploy config files (`netlify.toml`, `vercel.json`) are added only when the corresponding platform is in `deploy`.
 
 After generation:
 
@@ -112,13 +168,16 @@ npm run export  # Export to PDF
 | `project_name` | No | slugified title | Folder name and package name |
 | `slidev_theme` | No | `seriph` | Slidev theme from npm |
 | `visual_theme` | No | `cyberpunk` | Color palette (see table above) |
-| `transition` | No | `slide-left` | Slide transition effect |
-| `sections` | No | `[Introduction, References]` | List of slide sections |
-| `deploy` | No | all three | `github-pages`, `vercel`, `netlify` |
+| `transition` | No | `slide-left` | Slide transition (`slide-left`, `slide-up`, `fade`, `zoom`, `none`) |
+| `sections` | No | `[Introduction, References]` | List of sections (strings or `{name, type}` objects) |
+| `deploy` | No | `[github-pages]` | Deploy targets: `github-pages`, `vercel`, `netlify` |
 | `export.format` | No | `pdf` | Export format |
 | `export.dark` | No | `false` | Dark mode export |
 | `export.with_clicks` | No | `false` | Include click animations |
 | `options.snippets` | No | `true` | Include snippets/ directory |
+| `options.components` | No | `true` | Include reusable Vue components and layouts |
+| `colors.primary` | No | - | Primary color for custom theme |
+| `colors.secondary` | No | - | Secondary color for custom theme |
 
 ## Development
 
@@ -126,7 +185,8 @@ npm run export  # Export to PDF
 git clone git@github.com:christopherlouet/slidev-forge.git
 cd slidev-forge
 npm install
-npm test
+npm test              # Run tests
+npm run coverage      # Run tests with coverage
 ```
 
 ## Requirements
@@ -135,4 +195,4 @@ npm test
 
 ## License
 
-MIT
+GPL-3.0
