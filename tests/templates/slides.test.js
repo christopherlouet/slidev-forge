@@ -479,4 +479,272 @@ describe('generateSlides', () => {
       expect(slides).toContain('Notes for section');
     });
   });
+
+  describe('v1.4 section types', () => {
+    describe('code section', () => {
+      it('should generate a code block with default language javascript', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Demo', type: 'code' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('# Demo');
+        expect(slides).toContain('```javascript');
+      });
+
+      it('should use specified lang attribute', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'API', type: 'code', lang: 'typescript' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('```typescript');
+      });
+
+      it('should include line numbers marker', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Code', type: 'code' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('{lines:true}');
+      });
+
+      it('should include placeholder comment', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Code', type: 'code' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('// Votre code ici');
+      });
+
+      it('should use English placeholder when language is en', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          language: 'en',
+          sections: [{ name: 'Code', type: 'code' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('// Your code here');
+      });
+    });
+
+    describe('diagram section', () => {
+      it('should generate a mermaid block with default flowchart', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Architecture', type: 'diagram' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('# Architecture');
+        expect(slides).toContain('```mermaid');
+        expect(slides).toContain('flowchart TD');
+      });
+
+      it('should use specified diagram type', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Flux', type: 'diagram', diagram: 'sequenceDiagram' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('sequenceDiagram');
+      });
+
+      it('should include default diagram content', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Arch', type: 'diagram' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('A[Start]');
+        expect(slides).toContain('B[End]');
+      });
+    });
+
+    describe('cover section', () => {
+      it('should generate a cover layout with default image', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Chapter 2', type: 'cover' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('layout: cover');
+        expect(slides).toContain('background: https://cover.sli.dev');
+        expect(slides).toContain('# Chapter 2');
+      });
+
+      it('should use specified image', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Chapter', type: 'cover', image: 'https://example.com/bg.jpg' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('background: https://example.com/bg.jpg');
+      });
+    });
+
+    describe('iframe section', () => {
+      it('should generate an iframe with specified URL', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Demo', type: 'iframe', url: 'https://codepen.io/example' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('# Demo');
+        expect(slides).toContain('<iframe');
+        expect(slides).toContain('https://codepen.io/example');
+      });
+
+      it('should generate placeholder comment when no URL', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Demo', type: 'iframe' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('# Demo');
+        expect(slides).toContain('<!--');
+      });
+
+      it('should use English placeholder when language is en and no URL', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          language: 'en',
+          sections: [{ name: 'Demo', type: 'iframe' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('Add your embedded content URL here');
+      });
+    });
+
+    describe('steps section', () => {
+      it('should generate v-clicks list with default items', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Avantages', type: 'steps' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('# Avantages');
+        expect(slides).toContain('<v-clicks>');
+        expect(slides).toContain('</v-clicks>');
+      });
+
+      it('should use specified items', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Steps', type: 'steps', items: ['Point A', 'Point B', 'Point C'] }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('- Point A');
+        expect(slides).toContain('- Point B');
+        expect(slides).toContain('- Point C');
+      });
+
+      it('should generate default items with translated step label', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          language: 'fr',
+          sections: [{ name: 'Steps', type: 'steps' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('Étape 1');
+        expect(slides).toContain('Étape 2');
+        expect(slides).toContain('Étape 3');
+      });
+
+      it('should use English default items when language is en', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          language: 'en',
+          sections: [{ name: 'Steps', type: 'steps' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('Step 1');
+        expect(slides).toContain('Step 2');
+        expect(slides).toContain('Step 3');
+      });
+    });
+
+    describe('fact section', () => {
+      it('should generate centered layout with default values', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Performance', type: 'fact' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('layout: center');
+        expect(slides).toContain('# Performance');
+        expect(slides).toContain('text-8xl');
+        expect(slides).toContain('10x');
+      });
+
+      it('should use specified value and description', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Results', type: 'fact', value: '99.9%', description: 'uptime' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('99.9%');
+        expect(slides).toContain('uptime');
+      });
+
+      it('should use default description translated', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          language: 'en',
+          sections: [{ name: 'Stats', type: 'fact' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('faster');
+      });
+    });
+
+    describe('v1.4 mixed with existing types', () => {
+      it('should generate all v1.4 types alongside existing types', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [
+            { name: 'Intro', type: 'default' },
+            { name: 'Code', type: 'code', lang: 'python' },
+            { name: 'Arch', type: 'diagram' },
+            { name: 'Cover', type: 'cover' },
+            { name: 'Live', type: 'iframe', url: 'https://example.com' },
+            { name: 'Steps', type: 'steps', items: ['A', 'B'] },
+            { name: 'Fact', type: 'fact', value: '42', description: 'the answer' },
+            { name: 'Q&A', type: 'qna' },
+          ],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('# Intro');
+        expect(slides).toContain('```python');
+        expect(slides).toContain('```mermaid');
+        expect(slides).toContain('layout: cover');
+        expect(slides).toContain('<iframe');
+        expect(slides).toContain('<v-clicks>');
+        expect(slides).toContain('text-8xl');
+        expect(slides).toContain('Q&A');
+      });
+    });
+  });
 });

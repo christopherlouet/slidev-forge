@@ -10,7 +10,7 @@ export function generateSlides(config) {
   parts.push(generateTocSlide(config));
 
   for (const section of config.sections) {
-    parts.push(generateSectionSlide(section.name, section.type, config));
+    parts.push(generateSectionSlide(section, config));
   }
 
   return parts.join('\n---\n');
@@ -147,8 +147,10 @@ function generateTocSlide(config) {
   return lines.join('\n');
 }
 
-function generateSectionSlide(sectionTitle, sectionType, config) {
+function generateSectionSlide(section, config) {
   const lang = config.language;
+  const sectionTitle = section.name;
+  const sectionType = section.type;
   const lines = [`transition: ${config.transition}`];
 
   if (sectionType === 'two-cols') {
@@ -204,6 +206,69 @@ function generateSectionSlide(sectionTitle, sectionType, config) {
     lines.push(`**${config.author}**`);
     lines.push('');
     lines.push(`<!-- ${t('comment_add_bio', lang)} -->`);
+  } else if (sectionType === 'code') {
+    const codeLang = section.lang || 'javascript';
+    lines.push('---');
+    lines.push('');
+    lines.push(`# ${sectionTitle}`);
+    lines.push('');
+    lines.push(`\`\`\`${codeLang} {lines:true}`);
+    lines.push(`// ${t('comment_code_placeholder', lang)}`);
+    lines.push('```');
+  } else if (sectionType === 'diagram') {
+    const diagramType = section.diagram || 'flowchart TD';
+    lines.push('---');
+    lines.push('');
+    lines.push(`# ${sectionTitle}`);
+    lines.push('');
+    lines.push('```mermaid');
+    lines.push(diagramType);
+    lines.push('  A[Start] --> B[End]');
+    lines.push('```');
+  } else if (sectionType === 'cover') {
+    const image = section.image || 'https://cover.sli.dev';
+    lines.push('layout: cover');
+    lines.push(`background: ${image}`);
+    lines.push('---');
+    lines.push('');
+    lines.push(`# ${sectionTitle}`);
+  } else if (sectionType === 'iframe') {
+    lines.push('---');
+    lines.push('');
+    lines.push(`# ${sectionTitle}`);
+    lines.push('');
+    if (section.url) {
+      lines.push(`<iframe src="${section.url}" class="w-full h-full rounded" />`);
+    } else {
+      lines.push(`<!-- ${t('comment_iframe_no_url', lang)} -->`);
+    }
+  } else if (sectionType === 'steps') {
+    const items = section.items || [
+      `${t('comment_steps_item', lang)} 1`,
+      `${t('comment_steps_item', lang)} 2`,
+      `${t('comment_steps_item', lang)} 3`,
+    ];
+    lines.push('---');
+    lines.push('');
+    lines.push(`# ${sectionTitle}`);
+    lines.push('');
+    lines.push('<v-clicks>');
+    lines.push('');
+    for (const item of items) {
+      lines.push(`- ${item}`);
+    }
+    lines.push('');
+    lines.push('</v-clicks>');
+  } else if (sectionType === 'fact') {
+    const value = section.value || t('comment_fact_default_value', lang);
+    const description = section.description || t('comment_fact_default_desc', lang);
+    lines.push('layout: center');
+    lines.push('---');
+    lines.push('');
+    lines.push(`# ${sectionTitle}`);
+    lines.push('');
+    lines.push(`<div class="text-8xl font-bold">${value}</div>`);
+    lines.push(`<p class="text-2xl mt-4 opacity-70">${description}</p>`);
   } else {
     lines.push('---');
     lines.push('');
