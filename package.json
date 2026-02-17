@@ -1,6 +1,6 @@
 {
   "name": "slidev-forge",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "Initialisateur de projets Slidev avec themes visuels et configuration YAML",
   "type": "module",
   "license": "GPL-3.0",
