@@ -1,5 +1,17 @@
 import { mkdir, writeFile as fsWriteFile, copyFile } from 'node:fs/promises';
-import { join, dirname } from 'node:path';
+import { join, dirname, resolve, sep } from 'node:path';
+
+function assertSafePath(destDir: string, relativePath: string): string {
+  if (relativePath.startsWith('/') || relativePath.startsWith('\\')) {
+    throw new Error(`Path traversal blocked: "${relativePath}" is an absolute path`);
+  }
+  const fullPath = resolve(join(destDir, relativePath));
+  const normalizedDest = resolve(destDir);
+  if (!fullPath.startsWith(normalizedDest + sep) && fullPath !== normalizedDest) {
+    throw new Error(`Path traversal blocked: "${relativePath}" resolves outside destination`);
+  }
+  return fullPath;
+}
 
 /**
  * Writes content to a file, creating parent directories if needed.
@@ -9,7 +21,7 @@ import { join, dirname } from 'node:path';
  * @returns The relative path of the written file
  */
 export async function writeFile(destDir: string, relativePath: string, content: string): Promise<string> {
-  const fullPath = join(destDir, relativePath);
+  const fullPath = assertSafePath(destDir, relativePath);
   await mkdir(dirname(fullPath), { recursive: true });
   await fsWriteFile(fullPath, content, 'utf-8');
   return relativePath;
@@ -23,7 +35,7 @@ export async function writeFile(destDir: string, relativePath: string, content: 
  * @returns The relative path of the copied file
  */
 export async function copyStaticFile(srcPath: string, destDir: string, relativePath: string): Promise<string> {
-  const fullPath = join(destDir, relativePath);
+  const fullPath = assertSafePath(destDir, relativePath);
   await mkdir(dirname(fullPath), { recursive: true });
   await copyFile(srcPath, fullPath);
   return relativePath;

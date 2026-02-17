@@ -4,6 +4,7 @@
   "description": "Initialisateur de projets Slidev avec themes visuels et configuration YAML",
   "type": "module",
   "license": "GPL-3.0",
+  "homepage": "https://christopherlouet.github.io/slidev-forge/",
   "repository": {
     "type": "git",
     "url": "https://github.com/christopherlouet/slidev-forge.git"
@@ -21,19 +22,19 @@
   },
   "files": [
     "bin/",
-    "src/"
+    "dist/"
   ],
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "build": "tsc",
+    "build": "tsc && cp -r src/static/. dist/static/",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@inquirer/prompts": "^7.3.2",
+    "@inquirer/prompts": "^7.10.1",
     "picocolors": "^1.1.1",
-    "yaml": "^2.7.0"
+    "yaml": "^2.8.2"
   },
   "devDependencies": {
     "@types/node": "^25.2.3",

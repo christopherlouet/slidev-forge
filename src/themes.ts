@@ -4,7 +4,7 @@ import type { ThemeDefinition } from './types.js';
 export const THEMES: Record<string, ThemeDefinition> = {
   cyberpunk: {
     name: 'Cyberpunk',
-    description: 'Neon lights in the rain - Night City aesthetic',
+    description: 'Neon magenta and cyan on dark slides - ideal for tech and futuristic talks',
     h1Colors: ['#FF00FF', '#00FFFF'],
     titleStyle: {
       h1Color: '#FFFFFF',
@@ -18,7 +18,7 @@ export const THEMES: Record<string, ThemeDefinition> = {
   },
   matrix: {
     name: 'Matrix',
-    description: 'Digital rain - Enhanced terminal green with cyan accents',
+    description: 'Terminal green on black - perfect for developer and hacking-themed presentations',
     h1Colors: ['#00FF41', '#00D9FF'],
     titleStyle: {
       h1Color: '#00FF41',
@@ -32,7 +32,7 @@ export const THEMES: Record<string, ThemeDefinition> = {
   },
   dracula: {
     name: 'Dracula',
-    description: 'Dark theme with vibrant colors',
+    description: 'Purple and pink accents on dark background - elegant slides with high contrast',
     h1Colors: ['#BD93F9', '#FF79C6'],
     titleStyle: {
       h1Color: '#FFFFFF',
@@ -46,7 +46,7 @@ export const THEMES: Record<string, ThemeDefinition> = {
   },
   catppuccin: {
     name: 'Catppuccin',
-    description: 'Soothing pastel theme',
+    description: 'Soft pastel tones on dark slides - comfortable for long workshops and tutorials',
     h1Colors: ['#CBA6F7', '#89B4FA'],
     titleStyle: {
       h1Color: '#FFFFFF',
@@ -60,7 +60,7 @@ export const THEMES: Record<string, ThemeDefinition> = {
   },
   nord: {
     name: 'Nord',
-    description: 'Arctic, north-bluish color palette',
+    description: 'Cool arctic blues and muted tones - clean and professional slides',
     h1Colors: ['#88C0D0', '#5E81AC'],
     titleStyle: {
       h1Color: '#ECEFF4',
@@ -74,7 +74,7 @@ export const THEMES: Record<string, ThemeDefinition> = {
   },
   gruvbox: {
     name: 'Gruvbox',
-    description: 'Retro groove color scheme',
+    description: 'Warm amber and orange on dark background - retro and readable slides',
     h1Colors: ['#FABD2F', '#FE8019'],
     titleStyle: {
       h1Color: '#FBF1C7',
@@ -88,7 +88,7 @@ export const THEMES: Record<string, ThemeDefinition> = {
   },
   'tokyo-night': {
     name: 'Tokyo Night',
-    description: 'Clean dark theme inspired by Tokyo at night',
+    description: 'Soft blue and purple highlights on dark slides - modern and polished',
     h1Colors: ['#7AA2F7', '#BB9AF7'],
     titleStyle: {
       h1Color: '#FFFFFF',
@@ -102,7 +102,7 @@ export const THEMES: Record<string, ThemeDefinition> = {
   },
   'github-light': {
     name: 'GitHub Light',
-    description: 'Clean light theme based on GitHub palette',
+    description: 'Blue accents on white background - minimal and clear for daytime presentations',
     h1Colors: ['#0969DA', '#1F6FEB'],
     titleStyle: {
       h1Color: '#1F2328',
@@ -116,7 +116,7 @@ export const THEMES: Record<string, ThemeDefinition> = {
   },
   'rose-pine': {
     name: 'Rose Pine',
-    description: 'Warm dark theme with rose and pine tones',
+    description: 'Rose and teal on muted dark slides - warm and inviting for creative talks',
     h1Colors: ['#EA9A97', '#C4A7E7'],
     titleStyle: {
       h1Color: '#E0DEF4',
@@ -130,7 +130,7 @@ export const THEMES: Record<string, ThemeDefinition> = {
   },
   'one-dark-pro': {
     name: 'One Dark Pro',
-    description: 'Classic VS Code dark theme',
+    description: 'Blue and purple on balanced dark slides - familiar and versatile for any talk',
     h1Colors: ['#61AFEF', '#C678DD'],
     titleStyle: {
       h1Color: '#FFFFFF',

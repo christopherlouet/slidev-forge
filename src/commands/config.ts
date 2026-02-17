@@ -18,7 +18,10 @@ export async function runConfig(args: string[]): Promise<void> {
     process.exit(1);
   }
 
-  const yamlPath = resolve('presentation.yaml');
+  // Parse --path flag
+  const pathIdx = args.indexOf('--path');
+  const projectDir = pathIdx !== -1 && args[pathIdx + 1] ? resolve(args[pathIdx + 1]) : process.cwd();
+  const yamlPath = resolve(projectDir, 'presentation.yaml');
   let config: UserConfig;
   try {
     const content = await readFile(yamlPath, 'utf-8');
@@ -29,7 +32,7 @@ export async function runConfig(args: string[]): Promise<void> {
   }
 
   if (action === 'get') {
-    const value = (config as Record<string, unknown>)[key];
+    const value = (config as unknown as Record<string, unknown>)[key];
     if (value === undefined) {
       console.log(pc.yellow(`Key "${key}" is not set.`));
     } else {
@@ -49,7 +52,7 @@ export async function runConfig(args: string[]): Promise<void> {
     else if (value === 'false') parsedValue = false;
     else if (!isNaN(Number(value)) && value !== '') parsedValue = Number(value);
 
-    (config as Record<string, unknown>)[key] = parsedValue;
+    (config as unknown as Record<string, unknown>)[key] = parsedValue;
     await fsWriteFile(yamlPath, stringify(config), 'utf-8');
     console.log(pc.green(`Set ${key} = ${parsedValue}`));
   }

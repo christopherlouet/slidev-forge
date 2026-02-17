@@ -21,8 +21,10 @@ export async function runTheme(args: string[]): Promise<void> {
     process.exit(1);
   }
 
-  // Find presentation.yaml
-  const yamlPath = resolve('presentation.yaml');
+  // Parse --path flag
+  const pathIdx = args.indexOf('--path');
+  const projectDir = pathIdx !== -1 && args[pathIdx + 1] ? resolve(args[pathIdx + 1]) : process.cwd();
+  const yamlPath = resolve(projectDir, 'presentation.yaml');
   let config: UserConfig;
   try {
     const content = await readFile(yamlPath, 'utf-8');
