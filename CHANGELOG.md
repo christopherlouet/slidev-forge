@@ -5,6 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2026-02-17
+
+### Added
+
+- **Slide parser** (`src/parser.ts`): splits slides.md by `---` separators, extracts section markers and sub-frontmatter while handling code blocks correctly
+- **Slide merger** (`src/merger.ts`): diffs YAML config against parsed slides, preserves user content modifications with add/remove/keep/update-meta actions
+- **Regenerate command** (`slidev-forge regenerate`): non-destructive slide regeneration with `--dry-run` preview and automatic backup
+- **Section markers** (`<!-- section:id=xxx -->`): injected in generated slides for stable identification across regenerations
+- **Section ID generation**: slugify + dedup algorithm in utils for deterministic section identifiers
+- **6 new section types**: code, diagram, cover, iframe, steps, fact
+- **4 presets**: conference, workshop, pitch, lightning with localized section structures
+- **Internationalization** (i18n): fr/en translations for generated content, README, and section names
+- **Global configuration** (`~/.slidev-forge.yaml`): user-wide default preferences
+- **Multi-file pages/ mode**: alternative generation with individual page files
+- **CLI subcommands**: validate, add, theme, config for project management
+- **Frontmatter options**: fonts, lineNumbers, aspectRatio, colorSchema, favicon, download, htmlAttrs, addons
+- **Addons support**: configurable Slidev addons in generated package.json
+- **Branding**: social links on title/thanks slides, logo positioning in CSS, global-bottom.vue footer
+- **CLI flags**: `--version`, `--dry-run`, `--no-git`, preset selection in interactive prompt
+- **Security tests**: path traversal prevention, YAML injection protection, input sanitization (9 tests)
+- **Docusaurus documentation website** with guides, CLI reference, and examples
+- **GitHub Actions workflow** for documentation deployment to GitHub Pages
+
+### Changed
+
+- **Full TypeScript migration**: all source files migrated from JavaScript to TypeScript with strict types
+- **Build output**: switched from src/ to dist/ distribution, build copies static assets
+- **Binary entry point**: renamed to `slidev-forge`
+- **Dependencies**: bumped @inquirer/prompts (^7.10.1), yaml (^2.8.2)
+- **README**: simplified to point to documentation website
+
+### Removed
+
+- **Plugin system** (`src/plugins.ts`): removed in favor of built-in section types
+- Project-specific examples replaced with generic ones
+
+### Fixed
+
+- Custom theme registration and hex color validation
+- TypeScript strict mode compliance across CLI commands
+
 ## [1.1.0] - 2026-02-16
 
 ### Added
