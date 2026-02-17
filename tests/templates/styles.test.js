@@ -82,4 +82,19 @@ describe('generateStyles', () => {
     expect(css).toContain(THEMES[themeName].linkColor);
     expect(css).toContain(THEMES[themeName].codeBlockBg);
   });
+
+  describe('v1.6 logo', () => {
+    it('should include logo CSS when logo is configured', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', logo: 'logo.png' });
+      const css = generateStyles(config);
+      expect(css).toContain('.slidev-layout::after');
+      expect(css).toContain('logo.png');
+    });
+
+    it('should not include logo CSS when logo is not configured', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me' });
+      const css = generateStyles(config);
+      expect(css).not.toContain('.slidev-layout::after');
+    });
+  });
 });

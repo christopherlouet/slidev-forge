@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { resolve } from 'node:path';
-import { loadConfig, mergeDefaults, validateConfig, normalizeSections, SECTION_TYPES } from '../src/config.js';
+import { loadConfig, mergeDefaults, validateConfig, normalizeSections, SECTION_TYPES, PRESETS } from '../src/config.js';
 import { getTheme } from '../src/themes.js';
 
 const FIXTURES = resolve(import.meta.dirname, 'fixtures');
@@ -279,6 +279,15 @@ describe('config', () => {
       expect(SECTION_TYPES).toContain('thanks');
       expect(SECTION_TYPES).toContain('about');
     });
+
+    it('should contain v1.4 types code, diagram, cover, iframe, steps, fact', () => {
+      expect(SECTION_TYPES).toContain('code');
+      expect(SECTION_TYPES).toContain('diagram');
+      expect(SECTION_TYPES).toContain('cover');
+      expect(SECTION_TYPES).toContain('iframe');
+      expect(SECTION_TYPES).toContain('steps');
+      expect(SECTION_TYPES).toContain('fact');
+    });
   });
 
   describe('normalizeSections', () => {
@@ -329,6 +338,36 @@ describe('config', () => {
         { name: 'Code', type: 'two-cols' },
         { name: 'Références', type: 'default' },
       ]);
+    });
+
+    it('should preserve lang attribute on code sections', () => {
+      const result = normalizeSections([{ name: 'API', type: 'code', lang: 'typescript' }]);
+      expect(result[0]).toEqual({ name: 'API', type: 'code', lang: 'typescript' });
+    });
+
+    it('should preserve url attribute on iframe sections', () => {
+      const result = normalizeSections([{ name: 'Demo', type: 'iframe', url: 'https://example.com' }]);
+      expect(result[0]).toEqual({ name: 'Demo', type: 'iframe', url: 'https://example.com' });
+    });
+
+    it('should preserve image attribute on cover sections', () => {
+      const result = normalizeSections([{ name: 'Chapter', type: 'cover', image: 'https://example.com/bg.jpg' }]);
+      expect(result[0]).toEqual({ name: 'Chapter', type: 'cover', image: 'https://example.com/bg.jpg' });
+    });
+
+    it('should preserve diagram attribute on diagram sections', () => {
+      const result = normalizeSections([{ name: 'Arch', type: 'diagram', diagram: 'sequenceDiagram' }]);
+      expect(result[0]).toEqual({ name: 'Arch', type: 'diagram', diagram: 'sequenceDiagram' });
+    });
+
+    it('should preserve items attribute on steps sections', () => {
+      const result = normalizeSections([{ name: 'Steps', type: 'steps', items: ['A', 'B', 'C'] }]);
+      expect(result[0]).toEqual({ name: 'Steps', type: 'steps', items: ['A', 'B', 'C'] });
+    });
+
+    it('should preserve value and description on fact sections', () => {
+      const result = normalizeSections([{ name: 'Stats', type: 'fact', value: '10x', description: 'faster' }]);
+      expect(result[0]).toEqual({ name: 'Stats', type: 'fact', value: '10x', description: 'faster' });
     });
   });
 
@@ -407,6 +446,242 @@ describe('config', () => {
 
     it('should throw when author is only whitespace', () => {
       expect(() => validateConfig({ title: 'Test', author: '   ' })).toThrow(/author/i);
+    });
+  });
+
+  describe('mergeDefaults v1.3 fields', () => {
+    it('should default language to fr', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me' });
+      expect(config.language).toBe('fr');
+    });
+
+    it('should keep valid language unchanged', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', language: 'en' });
+      expect(config.language).toBe('en');
+    });
+
+    it('should fallback invalid language to fr with warning', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const config = mergeDefaults({ title: 'Test', author: 'Me', language: 'ja' });
+      expect(config.language).toBe('fr');
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('ja'));
+      warnSpy.mockRestore();
+    });
+
+    it('should pass through valid aspect_ratio', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', aspect_ratio: '4/3' });
+      expect(config.aspect_ratio).toBe('4/3');
+    });
+
+    it('should accept 16/9 aspect_ratio', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', aspect_ratio: '16/9' });
+      expect(config.aspect_ratio).toBe('16/9');
+    });
+
+    it('should delete invalid aspect_ratio with warning', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const config = mergeDefaults({ title: 'Test', author: 'Me', aspect_ratio: 'abc' });
+      expect(config.aspect_ratio).toBeUndefined();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('abc'));
+      warnSpy.mockRestore();
+    });
+
+    it('should delete numeric aspect_ratio with warning', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const config = mergeDefaults({ title: 'Test', author: 'Me', aspect_ratio: 1.77 });
+      expect(config.aspect_ratio).toBeUndefined();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('1.77'));
+      warnSpy.mockRestore();
+    });
+
+    it('should pass through valid color_schema light', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', color_schema: 'light' });
+      expect(config.color_schema).toBe('light');
+    });
+
+    it('should pass through valid color_schema dark', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', color_schema: 'dark' });
+      expect(config.color_schema).toBe('dark');
+    });
+
+    it('should pass through valid color_schema auto', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', color_schema: 'auto' });
+      expect(config.color_schema).toBe('auto');
+    });
+
+    it('should delete invalid color_schema with warning', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const config = mergeDefaults({ title: 'Test', author: 'Me', color_schema: 'blue' });
+      expect(config.color_schema).toBeUndefined();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('blue'));
+      warnSpy.mockRestore();
+    });
+
+    it('should pass through valid addons array', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        addons: ['slidev-addon-qrcode'],
+      });
+      expect(config.addons).toEqual(['slidev-addon-qrcode']);
+    });
+
+    it('should delete non-array addons with warning', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const config = mergeDefaults({ title: 'Test', author: 'Me', addons: 'qrcode' });
+      expect(config.addons).toBeUndefined();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('addons'));
+      warnSpy.mockRestore();
+    });
+
+    it('should pass through fonts object', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        fonts: { sans: 'Inter', mono: 'Fira Code' },
+      });
+      expect(config.fonts).toEqual({ sans: 'Inter', mono: 'Fira Code' });
+    });
+
+    it('should pass through line_numbers boolean', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', line_numbers: true });
+      expect(config.line_numbers).toBe(true);
+    });
+
+    it('should pass through favicon string', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', favicon: 'logo.png' });
+      expect(config.favicon).toBe('logo.png');
+    });
+
+    it('should pass through download boolean', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', download: true });
+      expect(config.download).toBe(true);
+    });
+
+    it('should not include optional fields when not specified', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me' });
+      expect(config.fonts).toBeUndefined();
+      expect(config.line_numbers).toBeUndefined();
+      expect(config.aspect_ratio).toBeUndefined();
+      expect(config.color_schema).toBeUndefined();
+      expect(config.addons).toBeUndefined();
+      expect(config.favicon).toBeUndefined();
+      expect(config.download).toBeUndefined();
+    });
+  });
+
+  describe('PRESETS', () => {
+    it('should export 4 presets', () => {
+      expect(Object.keys(PRESETS)).toEqual(['conference', 'workshop', 'lightning', 'pitch']);
+    });
+
+    it('should return arrays of section objects with name and type', () => {
+      for (const [key, presetFn] of Object.entries(PRESETS)) {
+        const sections = presetFn('fr');
+        expect(Array.isArray(sections)).toBe(true);
+        expect(sections.length).toBeGreaterThan(0);
+        for (const section of sections) {
+          expect(section).toHaveProperty('name');
+          expect(section).toHaveProperty('type');
+        }
+      }
+    });
+
+    it('conference should have 7 sections', () => {
+      const sections = PRESETS.conference('fr');
+      expect(sections).toHaveLength(7);
+    });
+
+    it('workshop should have 7 sections', () => {
+      const sections = PRESETS.workshop('fr');
+      expect(sections).toHaveLength(7);
+    });
+
+    it('lightning should have 4 sections', () => {
+      const sections = PRESETS.lightning('fr');
+      expect(sections).toHaveLength(4);
+    });
+
+    it('pitch should have 7 sections', () => {
+      const sections = PRESETS.pitch('fr');
+      expect(sections).toHaveLength(7);
+    });
+
+    it('conference should use code and qna types', () => {
+      const sections = PRESETS.conference('fr');
+      const types = sections.map((s) => s.type);
+      expect(types).toContain('code');
+      expect(types).toContain('qna');
+      expect(types).toContain('thanks');
+    });
+
+    it('workshop should use steps and code types', () => {
+      const sections = PRESETS.workshop('fr');
+      const types = sections.map((s) => s.type);
+      expect(types).toContain('steps');
+      expect(types).toContain('code');
+    });
+
+    it('lightning should use code and fact types', () => {
+      const sections = PRESETS.lightning('fr');
+      const types = sections.map((s) => s.type);
+      expect(types).toContain('code');
+      expect(types).toContain('fact');
+    });
+
+    it('pitch should use fact and about types', () => {
+      const sections = PRESETS.pitch('fr');
+      const types = sections.map((s) => s.type);
+      expect(types).toContain('fact');
+      expect(types).toContain('about');
+    });
+
+    it('should use translated section names for en', () => {
+      const frSections = PRESETS.conference('fr');
+      const enSections = PRESETS.conference('en');
+      // "À propos" vs "About"
+      expect(frSections[1].name).not.toBe(enSections[1].name);
+    });
+  });
+
+  describe('mergeDefaults preset resolution', () => {
+    it('should use preset sections when no sections provided', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', preset: 'conference' });
+      expect(config.sections.length).toBe(7);
+    });
+
+    it('should prefer explicit sections over preset', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        preset: 'conference',
+        sections: ['A', 'B'],
+      });
+      expect(config.sections).toEqual([
+        { name: 'A', type: 'default' },
+        { name: 'B', type: 'default' },
+      ]);
+    });
+
+    it('should warn and ignore unknown preset', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const config = mergeDefaults({ title: 'Test', author: 'Me', preset: 'unknown' });
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('unknown'));
+      // Falls back to default sections
+      expect(config.sections).toEqual([
+        { name: 'Introduction', type: 'default' },
+        { name: 'Références', type: 'default' },
+      ]);
+      warnSpy.mockRestore();
+    });
+
+    it('should use language for preset section names', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', preset: 'conference', language: 'en' });
+      const names = config.sections.map((s) => s.name);
+      // English names should differ from French
+      const frConfig = mergeDefaults({ title: 'Test', author: 'Me', preset: 'conference', language: 'fr' });
+      const frNames = frConfig.sections.map((s) => s.name);
+      expect(names).not.toEqual(frNames);
     });
   });
 });

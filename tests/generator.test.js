@@ -148,4 +148,271 @@ describe('generator', () => {
     const gitDir = await stat(join(tempDir, '.git'));
     expect(gitDir.isDirectory()).toBe(true);
   });
+
+  describe('v1.3 integration', () => {
+    it('should generate slides with all v1.3 frontmatter fields', async () => {
+      const config = mergeDefaults({
+        title: 'Advanced Talk',
+        author: 'Jane',
+        multi_file: false,
+        fonts: { sans: 'Inter', mono: 'Fira Code' },
+        line_numbers: true,
+        aspect_ratio: '4/3',
+        color_schema: 'dark',
+        favicon: 'logo.png',
+        download: true,
+        addons: ['slidev-addon-qrcode'],
+        language: 'en',
+      });
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).toContain('lineNumbers: true');
+      expect(slides).toContain("aspectRatio: '4/3'");
+      expect(slides).toContain('colorSchema: dark');
+      expect(slides).toContain('favicon: logo.png');
+      expect(slides).toContain('download: true');
+      expect(slides).toContain('lang: en');
+      expect(slides).toContain('fonts:');
+      expect(slides).toContain('  sans: Inter');
+      expect(slides).toContain('addons:');
+      expect(slides).toContain('  - slidev-addon-qrcode');
+      expect(slides).toContain('# Table of Contents');
+    });
+
+    it('should add addons as package.json dependencies', async () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        addons: ['slidev-addon-qrcode'],
+      });
+      await generate(config, tempDir);
+
+      const pkg = JSON.parse(await readFile(join(tempDir, 'package.json'), 'utf-8'));
+      expect(pkg.dependencies['slidev-addon-qrcode']).toBe('latest');
+    });
+
+    it('should generate English README when language is en', async () => {
+      const config = mergeDefaults({
+        title: 'My Talk',
+        author: 'Jane',
+        language: 'en',
+      });
+      await generate(config, tempDir);
+
+      const readme = await readFile(join(tempDir, 'README.md'), 'utf-8');
+      expect(readme).toContain('By **Jane**');
+    });
+  });
+
+  describe('v1.4 integration', () => {
+    it('should generate slides with all 6 new section types', async () => {
+      const config = mergeDefaults({
+        title: 'V1.4 Demo',
+        author: 'Tester',
+        multi_file: false,
+        language: 'en',
+        sections: [
+          { name: 'Code', type: 'code', lang: 'python' },
+          { name: 'Diagram', type: 'diagram' },
+          { name: 'Cover', type: 'cover', image: 'https://example.com/bg.jpg' },
+          { name: 'Iframe', type: 'iframe', url: 'https://codepen.io/test' },
+          { name: 'Steps', type: 'steps', items: ['A', 'B'] },
+          { name: 'Fact', type: 'fact', value: '42', description: 'the answer' },
+        ],
+      });
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).toContain('```python');
+      expect(slides).toContain('```mermaid');
+      expect(slides).toContain('layout: cover');
+      expect(slides).toContain('background: https://example.com/bg.jpg');
+      expect(slides).toContain('<iframe');
+      expect(slides).toContain('<v-clicks>');
+      expect(slides).toContain('- A');
+      expect(slides).toContain('text-8xl');
+      expect(slides).toContain('42');
+      expect(slides).toContain('the answer');
+    });
+
+    it('should generate from v14-sections.yaml fixture', async () => {
+      const { loadConfig } = await import('../src/config.js');
+      const userConfig = await loadConfig(join(import.meta.dirname, 'fixtures/v14-sections.yaml'));
+      const config = mergeDefaults({ ...userConfig, multi_file: false });
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).toContain('```typescript');
+      expect(slides).toContain('sequenceDiagram');
+      expect(slides).toContain('background: https://example.com/bg.jpg');
+      expect(slides).toContain('https://codepen.io/example');
+      expect(slides).toContain('- Fast');
+      expect(slides).toContain('99.9%');
+      expect(slides).toContain('uptime');
+    });
+  });
+
+  describe('v1.5 integration', () => {
+    it('should generate slides from conference preset', async () => {
+      const config = mergeDefaults({
+        title: 'Conference Talk',
+        author: 'Jane',
+        multi_file: false,
+        preset: 'conference',
+        language: 'en',
+      });
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).toContain('# Introduction');
+      expect(slides).toContain('# About');
+      expect(slides).toContain('# Demo');
+      expect(slides).toContain('# Q&A');
+      expect(slides).toContain('# Thank you');
+    });
+
+    it('should generate from preset-conference.yaml fixture', async () => {
+      const { loadConfig } = await import('../src/config.js');
+      const userConfig = await loadConfig(join(import.meta.dirname, 'fixtures/preset-conference.yaml'));
+      const config = mergeDefaults({ ...userConfig, multi_file: false });
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).toContain('# Introduction');
+      expect(slides).toContain('layout: center');
+    });
+
+    it('should generate from preset with explicit sections taking priority', async () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        multi_file: false,
+        preset: 'conference',
+        sections: ['Custom A', 'Custom B'],
+      });
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).toContain('# Custom A');
+      expect(slides).toContain('# Custom B');
+      expect(slides).not.toContain('# About');
+    });
+
+    it('should generate slides from lightning preset', async () => {
+      const config = mergeDefaults({
+        title: 'Quick Talk',
+        author: 'Me',
+        multi_file: false,
+        preset: 'lightning',
+        language: 'fr',
+      });
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).toContain('# Problème');
+      expect(slides).toContain('# Solution');
+      expect(slides).toContain('text-8xl');
+    });
+  });
+
+  describe('v1.6 integration', () => {
+    it('should generate global-bottom.vue when footer is configured', async () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        footer: 'MiXiT 2026 - @christopherlouet',
+      });
+      await generate(config, tempDir);
+
+      const footer = await readFile(join(tempDir, 'global-bottom.vue'), 'utf-8');
+      expect(footer).toContain('MiXiT 2026 - @christopherlouet');
+      expect(footer).toContain('<template>');
+    });
+
+    it('should not generate global-bottom.vue when footer is not configured', async () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me' });
+      await generate(config, tempDir);
+
+      await expect(
+        stat(join(tempDir, 'global-bottom.vue')),
+      ).rejects.toThrow();
+    });
+
+    it('should escape HTML in footer text', async () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        footer: '<script>alert("xss")</script>',
+      });
+      await generate(config, tempDir);
+
+      const footer = await readFile(join(tempDir, 'global-bottom.vue'), 'utf-8');
+      expect(footer).not.toContain('<script>');
+      expect(footer).toContain('&lt;script&gt;');
+    });
+
+    it('should include logo CSS in styles when logo is configured', async () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        logo: 'logo.png',
+      });
+      await generate(config, tempDir);
+
+      const css = await readFile(join(tempDir, 'styles/index.css'), 'utf-8');
+      expect(css).toContain('logo.png');
+    });
+
+    it('should include social links in slides when social is configured', async () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        multi_file: false,
+        social: { twitter: 'testuser' },
+      });
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).toContain('twitter.com/testuser');
+    });
+  });
+
+  describe('v2.0 integration', () => {
+    it('should generate multi-file structure when multi_file is true', async () => {
+      const config = mergeDefaults({
+        title: 'Multi File Talk',
+        author: 'Me',
+        multi_file: true,
+        sections: [
+          { name: 'Introduction', type: 'default' },
+          { name: 'Demo', type: 'code' },
+        ],
+      });
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).toContain('src: ./pages/01-toc.md');
+      expect(slides).toContain('src: ./pages/02-introduction.md');
+      expect(slides).toContain('src: ./pages/03-demo.md');
+
+      const toc = await readFile(join(tempDir, 'pages/01-toc.md'), 'utf-8');
+      expect(toc).toContain('Sommaire');
+
+      const intro = await readFile(join(tempDir, 'pages/02-introduction.md'), 'utf-8');
+      expect(intro).toContain('# Introduction');
+    });
+
+    it('should generate single file when multi_file is false', async () => {
+      const config = mergeDefaults({
+        title: 'Single File Talk',
+        author: 'Me',
+        multi_file: false,
+      });
+      await generate(config, tempDir);
+
+      const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
+      expect(slides).not.toContain('src: ./pages/');
+    });
+  });
 });

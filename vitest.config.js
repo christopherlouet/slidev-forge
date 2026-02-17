@@ -6,8 +6,10 @@ export default defineConfig({
       exclude: [
         'src/static/**',
         'bin/**',
+        'dist/**',
         'tests/**',
         'vitest.config.js',
+        'website/**',
       ],
     },
   },

@@ -41,4 +41,32 @@ describe('generateReadme', () => {
     const readme = generateReadme(config);
     expect(readme).toContain('A cool subtitle');
   });
+
+  describe('v1.3 i18n', () => {
+    it('should use "Par" in French by default', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me' });
+      const readme = generateReadme(config);
+      expect(readme).toContain('Par **Me**');
+    });
+
+    it('should use "By" in English', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', language: 'en' });
+      const readme = generateReadme(config);
+      expect(readme).toContain('By **Me**');
+    });
+
+    it('should use French headings by default', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me' });
+      const readme = generateReadme(config);
+      expect(readme).toContain('## Setup');
+      expect(readme).toContain('## Export');
+    });
+
+    it('should use English headings when language is en', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', language: 'en' });
+      const readme = generateReadme(config);
+      expect(readme).toContain('## Setup');
+      expect(readme).toContain('## Export');
+    });
+  });
 });

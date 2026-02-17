@@ -73,4 +73,41 @@ describe('generatePackageJson', () => {
     expect(pkg.dependencies['@slidev/theme-default']).toBeDefined();
     expect(pkg.dependencies['@slidev/theme-seriph']).toBeDefined();
   });
+
+  describe('v1.3 addons dependencies', () => {
+    it('should add addons as dependencies with latest version', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        addons: ['slidev-addon-qrcode'],
+      });
+      const pkg = JSON.parse(generatePackageJson(config));
+      expect(pkg.dependencies['slidev-addon-qrcode']).toBe('latest');
+    });
+
+    it('should add multiple addons as dependencies', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        addons: ['slidev-addon-qrcode', 'slidev-addon-excalidraw'],
+      });
+      const pkg = JSON.parse(generatePackageJson(config));
+      expect(pkg.dependencies['slidev-addon-qrcode']).toBe('latest');
+      expect(pkg.dependencies['slidev-addon-excalidraw']).toBe('latest');
+    });
+
+    it('should not add addon deps when addons is empty', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me', addons: [] });
+      const pkg = JSON.parse(generatePackageJson(config));
+      const depKeys = Object.keys(pkg.dependencies);
+      expect(depKeys.every((k) => k.startsWith('@slidev') || k === 'vue')).toBe(true);
+    });
+
+    it('should not add addon deps when addons is not configured', () => {
+      const config = mergeDefaults({ title: 'Test', author: 'Me' });
+      const pkg = JSON.parse(generatePackageJson(config));
+      const depKeys = Object.keys(pkg.dependencies);
+      expect(depKeys.every((k) => k.startsWith('@slidev') || k === 'vue')).toBe(true);
+    });
+  });
 });
