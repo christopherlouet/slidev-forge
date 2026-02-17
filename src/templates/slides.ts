@@ -1,6 +1,6 @@
 import { getTheme } from '../themes.js';
 import { t } from '../i18n.js';
-import { getPluginGenerator } from '../plugins.js';
+import { generateSectionIds, escapeHtml, escapeHtmlAttribute, validateUrl } from '../utils.js';
 import type { ResolvedConfig, Section, ThemeDefinition, SocialConfig } from '../types.js';
 
 interface SocialPlatformDef {
@@ -26,7 +26,7 @@ function generateSocialLinks(social: SocialConfig | undefined): string {
   for (const [platform, handle] of Object.entries(social)) {
     const def = SOCIAL_PLATFORMS[platform];
     if (!def) continue;
-    const href = `${def.url}${handle}`;
+    const href = `${def.url}${escapeHtmlAttribute(String(handle))}`;
     links.push(
       `  <a href="${href}" target="_blank" class="text-xl slidev-icon-btn opacity-50 !border-none">\n    <${def.icon} />\n  </a>`,
     );
@@ -37,6 +37,7 @@ function generateSocialLinks(social: SocialConfig | undefined): string {
 
 export function generateSlides(config: ResolvedConfig): string {
   const theme = getTheme(config.visual_theme);
+  const sectionIds = generateSectionIds(config.sections);
   const parts: string[] = [];
 
   parts.push(generateFrontmatter(config));
@@ -44,7 +45,8 @@ export function generateSlides(config: ResolvedConfig): string {
   parts.push(generateTocSlide(config));
 
   for (const section of config.sections) {
-    parts.push(generateSectionSlide(section, config));
+    const id = sectionIds.get(section) || 'unknown';
+    parts.push(generateSectionSlide(section, config, id));
   }
 
   return parts.join('\n---\n');
@@ -122,7 +124,7 @@ function generateFrontmatter(config: ResolvedConfig): string {
 }
 
 function generateTitleSlide(config: ResolvedConfig, theme: ThemeDefinition): string {
-  const lines: string[] = [''];
+  const lines: string[] = ['<!-- section:id=__title__ -->', ''];
 
   if (config.event_name) {
     lines.push(`# ${config.event_name}`);
@@ -180,6 +182,7 @@ function generateTocSlide(config: ResolvedConfig): string {
     `transition: ${config.transition}`,
     'hideInToc: true',
     '---',
+    '<!-- section:id=__toc__ -->',
     '',
     `# ${t('toc_title', lang)}`,
     '',
@@ -189,21 +192,17 @@ function generateTocSlide(config: ResolvedConfig): string {
   return lines.join('\n');
 }
 
-function generateSectionSlide(section: Section, config: ResolvedConfig): string {
-  // Check for plugin generator first
-  const pluginGen = getPluginGenerator(section.type);
-  if (pluginGen) {
-    return pluginGen(section, config);
-  }
-
+function generateSectionSlide(section: Section, config: ResolvedConfig, id: string): string {
   const lang = config.language;
   const sectionTitle = section.name;
   const sectionType = section.type;
+  const marker = `<!-- section:id=${id} -->`;
   const lines: string[] = [`transition: ${config.transition}`];
 
   if (sectionType === 'two-cols') {
     lines.push('layout: two-cols');
     lines.push('---');
+    lines.push(marker);
     lines.push('');
     lines.push(`# ${sectionTitle}`);
     lines.push('');
@@ -216,12 +215,14 @@ function generateSectionSlide(section: Section, config: ResolvedConfig): string 
     lines.push('layout: image-right');
     lines.push('image: https://cover.sli.dev');
     lines.push('---');
+    lines.push(marker);
     lines.push('');
     lines.push(`# ${sectionTitle}`);
     lines.push('');
     lines.push(`<!-- ${t('comment_image_content', lang)} -->`);
   } else if (sectionType === 'quote') {
     lines.push('---');
+    lines.push(marker);
     lines.push('');
     lines.push(`# ${sectionTitle}`);
     lines.push('');
@@ -231,6 +232,7 @@ function generateSectionSlide(section: Section, config: ResolvedConfig): string 
   } else if (sectionType === 'qna') {
     lines.push('layout: center');
     lines.push('---');
+    lines.push(marker);
     lines.push('');
     lines.push(`# ${sectionTitle}`);
     lines.push('');
@@ -238,6 +240,7 @@ function generateSectionSlide(section: Section, config: ResolvedConfig): string 
   } else if (sectionType === 'thanks') {
     lines.push('layout: center');
     lines.push('---');
+    lines.push(marker);
     lines.push('');
     lines.push(`# ${sectionTitle}`);
     lines.push('');
@@ -251,6 +254,7 @@ function generateSectionSlide(section: Section, config: ResolvedConfig): string 
     }
   } else if (sectionType === 'about') {
     lines.push('---');
+    lines.push(marker);
     lines.push('');
     lines.push(`# ${sectionTitle}`);
     lines.push('');
@@ -260,6 +264,7 @@ function generateSectionSlide(section: Section, config: ResolvedConfig): string 
   } else if (sectionType === 'code') {
     const codeLang = section.lang || 'javascript';
     lines.push('---');
+    lines.push(marker);
     lines.push('');
     lines.push(`# ${sectionTitle}`);
     lines.push('');
@@ -269,6 +274,7 @@ function generateSectionSlide(section: Section, config: ResolvedConfig): string 
   } else if (sectionType === 'diagram') {
     const diagramType = section.diagram || 'flowchart TD';
     lines.push('---');
+    lines.push(marker);
     lines.push('');
     lines.push(`# ${sectionTitle}`);
     lines.push('');
@@ -281,15 +287,17 @@ function generateSectionSlide(section: Section, config: ResolvedConfig): string 
     lines.push('layout: cover');
     lines.push(`background: ${image}`);
     lines.push('---');
+    lines.push(marker);
     lines.push('');
     lines.push(`# ${sectionTitle}`);
   } else if (sectionType === 'iframe') {
     lines.push('---');
+    lines.push(marker);
     lines.push('');
     lines.push(`# ${sectionTitle}`);
     lines.push('');
-    if (section.url) {
-      lines.push(`<iframe src="${section.url}" class="w-full h-full rounded" />`);
+    if (section.url && validateUrl(section.url)) {
+      lines.push(`<iframe src="${escapeHtmlAttribute(section.url)}" class="w-full h-full rounded" />`);
     } else {
       lines.push(`<!-- ${t('comment_iframe_no_url', lang)} -->`);
     }
@@ -300,6 +308,7 @@ function generateSectionSlide(section: Section, config: ResolvedConfig): string 
       `${t('comment_steps_item', lang)} 3`,
     ];
     lines.push('---');
+    lines.push(marker);
     lines.push('');
     lines.push(`# ${sectionTitle}`);
     lines.push('');
@@ -315,13 +324,15 @@ function generateSectionSlide(section: Section, config: ResolvedConfig): string 
     const description = section.description || t('comment_fact_default_desc', lang);
     lines.push('layout: center');
     lines.push('---');
+    lines.push(marker);
     lines.push('');
     lines.push(`# ${sectionTitle}`);
     lines.push('');
-    lines.push(`<div class="text-8xl font-bold">${value}</div>`);
-    lines.push(`<p class="text-2xl mt-4 opacity-70">${description}</p>`);
+    lines.push(`<div class="text-8xl font-bold">${escapeHtml(value)}</div>`);
+    lines.push(`<p class="text-2xl mt-4 opacity-70">${escapeHtml(description)}</p>`);
   } else {
     lines.push('---');
+    lines.push(marker);
     lines.push('');
     lines.push(`# ${sectionTitle}`);
     lines.push('');

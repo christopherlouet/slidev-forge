@@ -1,24 +1,15 @@
 import type { ResolvedConfig, Section } from '../types.js';
 import { t } from '../i18n.js';
 import { getTheme } from '../themes.js';
-import { getPluginGenerator } from '../plugins.js';
+import { generateSectionIds, escapeHtml, escapeHtmlAttribute, validateUrl, slugify } from '../utils.js';
 
 interface MultiFileOutput {
   slidesMain: string;
   pages: { path: string; content: string }[];
 }
 
-function padIndex(index: number): string {
+export function padIndex(index: number): string {
   return String(index).padStart(2, '0');
-}
-
-function slugifySection(name: string): string {
-  return name
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
 }
 
 export function generateMultiFile(config: ResolvedConfig): MultiFileOutput {
@@ -32,6 +23,7 @@ export function generateMultiFile(config: ResolvedConfig): MultiFileOutput {
 
   // Title slide (inline in slides.md)
   srcLines.push('---');
+  srcLines.push('<!-- section:id=__title__ -->');
   srcLines.push('');
   srcLines.push(generateTitleContent(config, theme));
 
@@ -41,16 +33,21 @@ export function generateMultiFile(config: ResolvedConfig): MultiFileOutput {
   pages.push({ path: tocPath, content: tocContent });
   srcLines.push('---');
   srcLines.push(`src: ./${tocPath}`);
+  srcLines.push('---');
 
   // Section slides as pages
+  const sectionIds = generateSectionIds(config.sections);
   config.sections.forEach((section, i) => {
     const pageIndex = i + 2;
-    const slug = slugifySection(section.name);
+    const slug = slugify(section.name);
     const pagePath = `pages/${padIndex(pageIndex)}-${slug}.md`;
-    const pageContent = generateSectionPage(section, config);
+    const id = sectionIds.get(section) || 'unknown';
+    const pageContent = generateSectionPage(section, config, id);
     pages.push({ path: pagePath, content: pageContent });
+    srcLines.push('');
     srcLines.push('---');
     srcLines.push(`src: ./${pagePath}`);
+    srcLines.push('---');
   });
 
   srcLines.push('');
@@ -153,9 +150,11 @@ function generateTitleContent(config: ResolvedConfig, theme: ReturnType<typeof g
 function generateTocPage(config: ResolvedConfig): string {
   const lang = config.language;
   const lines: string[] = [
+    '---',
     `transition: ${config.transition}`,
     'hideInToc: true',
     '---',
+    '<!-- section:id=__toc__ -->',
     '',
     `# ${t('toc_title', lang)}`,
     '',
@@ -165,35 +164,149 @@ function generateTocPage(config: ResolvedConfig): string {
   return lines.join('\n');
 }
 
-function generateSectionPage(section: Section, config: ResolvedConfig): string {
-  // Check for plugin
-  const pluginGen = getPluginGenerator(section.type);
-  if (pluginGen) {
-    return pluginGen(section, config);
-  }
-
+export function generateSectionPage(section: Section, config: ResolvedConfig, id: string): string {
   const lang = config.language;
-  const lines: string[] = [`transition: ${config.transition}`];
+  const sectionType = section.type;
+  const marker = `<!-- section:id=${id} -->`;
+  const lines: string[] = ['---', `transition: ${config.transition}`];
 
-  if (section.type === 'cover') {
+  if (sectionType === 'two-cols') {
+    lines.push('layout: two-cols');
+    lines.push('---');
+    lines.push(marker);
+    lines.push('');
+    lines.push(`# ${section.name}`);
+    lines.push('');
+    lines.push(`<!-- ${t('comment_left_column', lang)} -->`);
+    lines.push('');
+    lines.push('::right::');
+    lines.push('');
+    lines.push(`<!-- ${t('comment_right_column', lang)} -->`);
+  } else if (sectionType === 'image-right') {
+    lines.push('layout: image-right');
+    lines.push('image: https://cover.sli.dev');
+    lines.push('---');
+    lines.push(marker);
+    lines.push('');
+    lines.push(`# ${section.name}`);
+    lines.push('');
+    lines.push(`<!-- ${t('comment_image_content', lang)} -->`);
+  } else if (sectionType === 'quote') {
+    lines.push('---');
+    lines.push(marker);
+    lines.push('');
+    lines.push(`# ${section.name}`);
+    lines.push('');
+    lines.push(`> ${t('comment_replace_quote', lang)}`);
+    lines.push('');
+    lines.push(`-- ${t('comment_quote_author', lang)}`);
+  } else if (sectionType === 'qna') {
+    lines.push('layout: center');
+    lines.push('---');
+    lines.push(marker);
+    lines.push('');
+    lines.push(`# ${section.name}`);
+    lines.push('');
+    lines.push(t('comment_qna', lang));
+  } else if (sectionType === 'thanks') {
+    lines.push('layout: center');
+    lines.push('---');
+    lines.push(marker);
+    lines.push('');
+    lines.push(`# ${section.name}`);
+    lines.push('');
+    lines.push(`${config.author}`);
+    if (config.github) {
+      lines.push('');
+      lines.push(`[github.com/${config.github}](https://github.com/${config.github})`);
+    }
+  } else if (sectionType === 'about') {
+    lines.push('---');
+    lines.push(marker);
+    lines.push('');
+    lines.push(`# ${section.name}`);
+    lines.push('');
+    lines.push(`**${config.author}**`);
+    lines.push('');
+    lines.push(`<!-- ${t('comment_add_bio', lang)} -->`);
+  } else if (sectionType === 'code') {
+    const codeLang = section.lang || 'javascript';
+    lines.push('---');
+    lines.push(marker);
+    lines.push('');
+    lines.push(`# ${section.name}`);
+    lines.push('');
+    lines.push(`\`\`\`${codeLang} {lines:true}`);
+    lines.push(`// ${t('comment_code_placeholder', lang)}`);
+    lines.push('```');
+  } else if (sectionType === 'diagram') {
+    const diagramType = section.diagram || 'flowchart TD';
+    lines.push('---');
+    lines.push(marker);
+    lines.push('');
+    lines.push(`# ${section.name}`);
+    lines.push('');
+    lines.push('```mermaid');
+    lines.push(diagramType);
+    lines.push('  A[Start] --> B[End]');
+    lines.push('```');
+  } else if (sectionType === 'cover') {
     const image = section.image || 'https://cover.sli.dev';
     lines.push('layout: cover');
     lines.push(`background: ${image}`);
-  } else if (section.type === 'two-cols') {
-    lines.push('layout: two-cols');
-  } else if (section.type === 'image-right') {
-    lines.push('layout: image-right');
-    lines.push('image: https://cover.sli.dev');
-  } else if (section.type === 'qna' || section.type === 'thanks' || section.type === 'fact') {
+    lines.push('---');
+    lines.push(marker);
+    lines.push('');
+    lines.push(`# ${section.name}`);
+  } else if (sectionType === 'iframe') {
+    lines.push('---');
+    lines.push(marker);
+    lines.push('');
+    lines.push(`# ${section.name}`);
+    lines.push('');
+    if (section.url && validateUrl(section.url)) {
+      lines.push(`<iframe src="${escapeHtmlAttribute(section.url)}" class="w-full h-full rounded" />`);
+    } else {
+      lines.push(`<!-- ${t('comment_iframe_no_url', lang)} -->`);
+    }
+  } else if (sectionType === 'steps') {
+    const items = section.items || [
+      `${t('comment_steps_item', lang)} 1`,
+      `${t('comment_steps_item', lang)} 2`,
+      `${t('comment_steps_item', lang)} 3`,
+    ];
+    lines.push('---');
+    lines.push(marker);
+    lines.push('');
+    lines.push(`# ${section.name}`);
+    lines.push('');
+    lines.push('<v-clicks>');
+    lines.push('');
+    for (const item of items) {
+      lines.push(`- ${item}`);
+    }
+    lines.push('');
+    lines.push('</v-clicks>');
+  } else if (sectionType === 'fact') {
+    const value = section.value || t('comment_fact_default_value', lang);
+    const description = section.description || t('comment_fact_default_desc', lang);
     lines.push('layout: center');
+    lines.push('---');
+    lines.push(marker);
+    lines.push('');
+    lines.push(`# ${section.name}`);
+    lines.push('');
+    lines.push(`<div class="text-8xl font-bold">${escapeHtml(value)}</div>`);
+    lines.push(`<p class="text-2xl mt-4 opacity-70">${escapeHtml(description)}</p>`);
+  } else {
+    lines.push('---');
+    lines.push(marker);
+    lines.push('');
+    lines.push(`# ${section.name}`);
+    lines.push('');
+    lines.push(`<!-- ${t('comment_section_content', lang)} "${section.name}" -->`);
   }
 
-  lines.push('---');
   lines.push('');
-  lines.push(`# ${section.name}`);
-  lines.push('');
-  lines.push(`<!-- ${t('comment_section_content', lang)} "${section.name}" -->`);
-  lines.push('');
-
   return lines.join('\n');
 }

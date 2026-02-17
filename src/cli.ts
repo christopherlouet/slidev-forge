@@ -18,7 +18,7 @@ export function resolveDestDir(rawPath: string): string {
   return resolve(expandHome(rawPath));
 }
 
-const SUBCOMMANDS = ['validate', 'add', 'theme', 'config'] as const;
+const SUBCOMMANDS = ['validate', 'add', 'theme', 'config', 'regenerate'] as const;
 
 export function parseArgs(args: string[]): ParsedArgs {
   if (args.includes('--help') || args.includes('-h')) {
@@ -113,9 +113,29 @@ export function showHelp(): void {
   ${pc.bold('slidev-forge')} - Generateur de projets Slidev
 
   ${pc.bold('Usage:')}
-    slidev-forge                         Mode interactif
-    slidev-forge <config.yaml> [dest]    Depuis un fichier YAML
-    slidev-forge --help                  Afficher l'aide
+    slidev-forge                              Mode interactif
+    slidev-forge <config.yaml> [dest]         Depuis un fichier YAML
+    slidev-forge --help                       Afficher l'aide
+    slidev-forge --version                    Afficher la version
+
+  ${pc.bold('Options:')}
+    --dry-run                                 Previsualiser sans generer
+    --no-git                                  Ne pas initialiser de depot git
+
+  ${pc.bold('Commandes:')}
+    validate <config.yaml>                    Valider un fichier de configuration
+    add section "Nom" [--type <type>]         Ajouter une section au projet
+    theme [<nom>]                             Lister ou changer le theme visuel
+    config get <cle>                          Lire une valeur de configuration
+    config set <cle> <valeur>                 Modifier une valeur de configuration
+    regenerate [--dry-run]                    Synchroniser slides.md avec presentation.yaml
+
+  ${pc.bold('Options des commandes:')}
+    --path <dir>                              Dossier du projet (defaut: repertoire courant)
+
+  ${pc.bold('Types de sections:')}
+    default, two-cols, image-right, quote, qna, thanks, about, code, diagram,
+    cover, iframe, steps, fact
 
   ${pc.bold('Themes visuels disponibles:')}`);
   for (const [key, theme] of Object.entries(THEMES)) {
@@ -126,6 +146,14 @@ export function showHelp(): void {
   ${pc.bold('Exemple de YAML minimal:')}
     title: My Awesome Talk
     author: Jane Doe
+
+  ${pc.bold('Exemples:')}
+    slidev-forge                              Creer un projet interactivement
+    slidev-forge presentation.yaml ./dest     Generer depuis un fichier YAML
+    slidev-forge add section "Demo" --type code
+    slidev-forge add section "API" --path ~/Presentations/talk
+    slidev-forge theme tokyo-night
+    slidev-forge regenerate --dry-run
 `);
 }
 
@@ -141,6 +169,7 @@ export async function promptInteractive(): Promise<InteractiveAnswers> {
       value: key,
     })),
     default: DEFAULT_THEME,
+    loop: false,
   });
 
   const preset = await select({
@@ -217,6 +246,38 @@ export async function run(args: string[]): Promise<void> {
       case 'config': {
         const { runConfig } = await import('./commands/config.js');
         await runConfig(subArgs);
+        return;
+      }
+      case 'regenerate': {
+        const { runRegenerate } = await import('./commands/regenerate.js');
+        const result = await runRegenerate(subArgs);
+        if (!result.success) {
+          console.error(pc.red(result.error || 'Regeneration failed'));
+          process.exit(1);
+        }
+        if (result.dryRun) {
+          console.log(`\n  ${pc.bold('Dry run - changes that would be applied:')}\n`);
+        } else {
+          console.log(`\n  ${pc.green(pc.bold('Regeneration successful!'))}\n`);
+          if (result.backupPath) {
+            console.log(`  ${pc.bold('Backup:')} ${pc.dim(result.backupPath)}`);
+          }
+        }
+        for (const action of result.actions) {
+          const icon =
+            action.type === 'add' ? pc.green('+') :
+            action.type === 'remove' ? pc.red('-') :
+            action.type === 'keep' ? pc.dim('=') :
+            pc.cyan('~');
+          console.log(`  ${icon} ${action.sectionName} (${action.type})`);
+        }
+        if (!result.dryRun && result.filesUpdated.length > 0) {
+          console.log(`\n  ${pc.bold(`${result.filesUpdated.length} files updated:`)}`);
+          for (const f of result.filesUpdated) {
+            console.log(`    ${pc.dim(f)}`);
+          }
+        }
+        console.log('');
         return;
       }
       default:
@@ -310,10 +371,17 @@ export async function run(args: string[]): Promise<void> {
       ],
     });
 
-    if (pm !== 'skip' && (ALLOWED_PM as readonly string[]).includes(pm)) {
-      const { execSync } = await import('node:child_process');
+    const PM_COMMANDS: Record<string, [string, string]> = {
+      npm: ['npm', 'install'],
+      pnpm: ['pnpm', 'install'],
+      yarn: ['yarn', 'install'],
+      bun: ['bun', 'install'],
+    };
+    const cmd = PM_COMMANDS[pm];
+    if (cmd) {
+      const { execFileSync } = await import('node:child_process');
       console.log(`\n  ${pc.cyan(`Installation avec ${pm}...`)}`);
-      execSync(`${pm} install`, { cwd: destDir, stdio: 'inherit' });
+      execFileSync(cmd[0], [cmd[1]], { cwd: destDir, stdio: 'inherit' });
     }
   } catch {
     // Non-interactive environment, skip

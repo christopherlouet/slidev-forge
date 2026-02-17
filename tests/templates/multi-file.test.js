@@ -136,4 +136,275 @@ describe('generateMultiFile', () => {
     expect(result.slidesMain).toContain('slideNumber: true');
     expect(result.slidesMain).toContain('lineNumbers: true');
   });
+
+  describe('section types coverage', () => {
+    it('should generate steps section with default items', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        sections: [{ name: 'Steps', type: 'steps' }],
+      });
+      const result = generateMultiFile(config);
+      const page = result.pages[1];
+      expect(page.content).toContain('<v-clicks>');
+      expect(page.content).toContain('</v-clicks>');
+    });
+
+    it('should generate steps section with custom items', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        sections: [{ name: 'Steps', type: 'steps', items: ['A', 'B', 'C'] }],
+      });
+      const result = generateMultiFile(config);
+      const page = result.pages[1];
+      expect(page.content).toContain('- A');
+      expect(page.content).toContain('- B');
+      expect(page.content).toContain('- C');
+    });
+
+    it('should generate fact section with defaults', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        sections: [{ name: 'Stats', type: 'fact' }],
+      });
+      const result = generateMultiFile(config);
+      const page = result.pages[1];
+      expect(page.content).toContain('layout: center');
+      expect(page.content).toContain('text-8xl');
+    });
+
+    it('should generate fact section with custom value and description', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        sections: [{ name: 'Results', type: 'fact', value: '99%', description: 'uptime' }],
+      });
+      const result = generateMultiFile(config);
+      const page = result.pages[1];
+      expect(page.content).toContain('99%');
+      expect(page.content).toContain('uptime');
+    });
+
+    it('should generate image-right section', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        sections: [{ name: 'Visual', type: 'image-right' }],
+      });
+      const result = generateMultiFile(config);
+      const page = result.pages[1];
+      expect(page.content).toContain('layout: image-right');
+      expect(page.content).toContain('image: https://cover.sli.dev');
+    });
+
+    it('should generate quote section', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        sections: [{ name: 'Citation', type: 'quote' }],
+      });
+      const result = generateMultiFile(config);
+      const page = result.pages[1];
+      expect(page.content).toContain('> ');
+    });
+
+    it('should generate thanks section with author', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Chris',
+        sections: [{ name: 'Thanks', type: 'thanks' }],
+      });
+      const result = generateMultiFile(config);
+      const page = result.pages[1];
+      expect(page.content).toContain('Chris');
+      expect(page.content).toContain('layout: center');
+    });
+
+    it('should generate thanks section with github link', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Chris',
+        github: 'chrisuser',
+        sections: [{ name: 'Thanks', type: 'thanks' }],
+      });
+      const result = generateMultiFile(config);
+      const page = result.pages[1];
+      expect(page.content).toContain('github.com/chrisuser');
+    });
+
+    it('should generate about section', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Chris',
+        sections: [{ name: 'About', type: 'about' }],
+      });
+      const result = generateMultiFile(config);
+      const page = result.pages[1];
+      expect(page.content).toContain('**Chris**');
+    });
+
+    it('should generate code section with custom lang', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        sections: [{ name: 'Code', type: 'code', lang: 'python' }],
+      });
+      const result = generateMultiFile(config);
+      const page = result.pages[1];
+      expect(page.content).toContain('```python');
+    });
+
+    it('should generate diagram section with custom type', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        sections: [{ name: 'Arch', type: 'diagram', diagram: 'sequenceDiagram' }],
+      });
+      const result = generateMultiFile(config);
+      const page = result.pages[1];
+      expect(page.content).toContain('```mermaid');
+      expect(page.content).toContain('sequenceDiagram');
+    });
+
+    it('should generate iframe section with valid URL', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        sections: [{ name: 'Demo', type: 'iframe', url: 'https://codepen.io/test' }],
+      });
+      const result = generateMultiFile(config);
+      const page = result.pages[1];
+      expect(page.content).toContain('<iframe');
+      expect(page.content).toContain('https://codepen.io/test');
+    });
+
+    it('should reject javascript: URL in iframe section', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        sections: [{ name: 'Demo', type: 'iframe', url: 'javascript:alert(1)' }],
+      });
+      const result = generateMultiFile(config);
+      const page = result.pages[1];
+      expect(page.content).not.toContain('javascript:');
+    });
+
+    it('should generate cover section with custom image', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        sections: [{ name: 'Chapter', type: 'cover', image: 'https://example.com/bg.jpg' }],
+      });
+      const result = generateMultiFile(config);
+      const page = result.pages[1];
+      expect(page.content).toContain('layout: cover');
+      expect(page.content).toContain('background: https://example.com/bg.jpg');
+    });
+  });
+
+  describe('frontmatter options', () => {
+    it('should include aspect_ratio when configured', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        aspect_ratio: '4/3',
+        sections: [{ name: 'Intro', type: 'default' }],
+      });
+      const result = generateMultiFile(config);
+      expect(result.slidesMain).toContain("aspectRatio: '4/3'");
+    });
+
+    it('should include colorSchema when configured', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        color_schema: 'dark',
+        sections: [{ name: 'Intro', type: 'default' }],
+      });
+      const result = generateMultiFile(config);
+      expect(result.slidesMain).toContain('colorSchema: dark');
+    });
+
+    it('should include favicon when configured', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        favicon: 'logo.png',
+        sections: [{ name: 'Intro', type: 'default' }],
+      });
+      const result = generateMultiFile(config);
+      expect(result.slidesMain).toContain('favicon: logo.png');
+    });
+
+    it('should include download when configured', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        download: true,
+        sections: [{ name: 'Intro', type: 'default' }],
+      });
+      const result = generateMultiFile(config);
+      expect(result.slidesMain).toContain('download: true');
+    });
+
+    it('should include htmlAttrs with language', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        language: 'en',
+        sections: [{ name: 'Intro', type: 'default' }],
+      });
+      const result = generateMultiFile(config);
+      expect(result.slidesMain).toContain('htmlAttrs:');
+      expect(result.slidesMain).toContain('  lang: en');
+    });
+
+    it('should include fonts when configured', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        fonts: { sans: 'Inter' },
+        sections: [{ name: 'Intro', type: 'default' }],
+      });
+      const result = generateMultiFile(config);
+      expect(result.slidesMain).toContain('fonts:');
+      expect(result.slidesMain).toContain('  sans: Inter');
+    });
+
+    it('should include addons when configured', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        addons: ['slidev-addon-qrcode'],
+        sections: [{ name: 'Intro', type: 'default' }],
+      });
+      const result = generateMultiFile(config);
+      expect(result.slidesMain).toContain('addons:');
+      expect(result.slidesMain).toContain('  - slidev-addon-qrcode');
+    });
+
+    it('should include subtitle in title slide', () => {
+      const config = mergeDefaults({
+        title: 'My Talk',
+        author: 'Me',
+        subtitle: 'A great topic',
+        sections: [{ name: 'Intro', type: 'default' }],
+      });
+      const result = generateMultiFile(config);
+      expect(result.slidesMain).toContain('A great topic');
+    });
+
+    it('should include event_name in title slide', () => {
+      const config = mergeDefaults({
+        title: 'My Talk',
+        author: 'Me',
+        event_name: 'DevFest 2026',
+        sections: [{ name: 'Intro', type: 'default' }],
+      });
+      const result = generateMultiFile(config);
+      expect(result.slidesMain).toContain('# DevFest 2026');
+    });
+  });
 });

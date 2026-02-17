@@ -817,4 +817,140 @@ describe('generateSlides', () => {
       });
     });
   });
+
+  describe('section markers', () => {
+    it('should include __title__ marker in title slide', () => {
+      const slides = generateSlides(minimalConfig);
+      expect(slides).toContain('<!-- section:id=__title__ -->');
+    });
+
+    it('should include __toc__ marker in toc slide', () => {
+      const slides = generateSlides(minimalConfig);
+      expect(slides).toContain('<!-- section:id=__toc__ -->');
+    });
+
+    it('should include slugified markers for each section', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        sections: ['Introduction', 'Demo', 'Références'],
+      });
+      const slides = generateSlides(config);
+      expect(slides).toContain('<!-- section:id=introduction -->');
+      expect(slides).toContain('<!-- section:id=demo -->');
+      expect(slides).toContain('<!-- section:id=references -->');
+    });
+
+    it('should deduplicate markers for sections with same name', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        sections: ['Topic', 'Topic', 'Topic'],
+      });
+      const slides = generateSlides(config);
+      expect(slides).toContain('<!-- section:id=topic -->');
+      expect(slides).toContain('<!-- section:id=topic-2 -->');
+      expect(slides).toContain('<!-- section:id=topic-3 -->');
+    });
+
+    it('should include markers for all section types', () => {
+      const config = mergeDefaults({
+        title: 'Test',
+        author: 'Me',
+        sections: [
+          { name: 'Default', type: 'default' },
+          { name: 'Two Cols', type: 'two-cols' },
+          { name: 'Code', type: 'code' },
+          { name: 'Quote', type: 'quote' },
+          { name: 'Thanks', type: 'thanks' },
+        ],
+      });
+      const slides = generateSlides(config);
+      expect(slides).toContain('<!-- section:id=default -->');
+      expect(slides).toContain('<!-- section:id=two-cols -->');
+      expect(slides).toContain('<!-- section:id=code -->');
+      expect(slides).toContain('<!-- section:id=quote -->');
+      expect(slides).toContain('<!-- section:id=thanks -->');
+    });
+  });
+
+  describe('input validation security', () => {
+    describe('social links', () => {
+      it('should escape special characters in social handles', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          social: { twitter: '" onmouseover="alert(1)' },
+        });
+        const slides = generateSlides(config);
+        expect(slides).not.toContain('" onmouseover=');
+        expect(slides).toContain('&quot;');
+      });
+
+      it('should escape angle brackets in social handles', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          social: { twitter: '<script>alert(1)</script>' },
+        });
+        const slides = generateSlides(config);
+        expect(slides).not.toContain('<script>alert(1)</script>');
+      });
+    });
+
+    describe('iframe section', () => {
+      it('should reject javascript: URLs in iframe', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Demo', type: 'iframe', url: 'javascript:alert(1)' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).not.toContain('javascript:alert(1)');
+      });
+
+      it('should reject data: URLs in iframe', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Demo', type: 'iframe', url: 'data:text/html,<h1>hi</h1>' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).not.toContain('data:text/html');
+      });
+
+      it('should accept valid https URL in iframe', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Demo', type: 'iframe', url: 'https://codepen.io/example' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).toContain('https://codepen.io/example');
+      });
+    });
+
+    describe('fact section', () => {
+      it('should escape HTML in fact value', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Stat', type: 'fact', value: '<script>alert(1)</script>' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).not.toContain('<script>alert(1)</script>');
+        expect(slides).toContain('&lt;script&gt;');
+      });
+
+      it('should escape HTML in fact description', () => {
+        const config = mergeDefaults({
+          title: 'Test',
+          author: 'Me',
+          sections: [{ name: 'Stat', type: 'fact', description: '<img onerror="alert(1)">' }],
+        });
+        const slides = generateSlides(config);
+        expect(slides).not.toContain('<img onerror=');
+      });
+    });
+  });
 });

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { resolve } from 'node:path';
 import { homedir } from 'node:os';
-import { slugify, sanitizeProjectName, validateHexColor, expandHome } from '../src/utils.js';
+import { slugify, sanitizeProjectName, validateHexColor, expandHome, generateSectionIds, validateUrl, validateGitHubUsername, escapeHtmlAttribute } from '../src/utils.js';
 
 describe('utils', () => {
   describe('slugify', () => {
@@ -169,6 +169,147 @@ describe('utils', () => {
       expect(validateHexColor('')).toBe(false);
       expect(validateHexColor(null)).toBe(false);
       expect(validateHexColor(undefined)).toBe(false);
+    });
+  });
+
+  describe('validateUrl', () => {
+    it('should accept https URLs', () => {
+      expect(validateUrl('https://example.com')).toBe(true);
+    });
+
+    it('should accept http URLs', () => {
+      expect(validateUrl('http://example.com')).toBe(true);
+    });
+
+    it('should reject javascript: protocol', () => {
+      expect(validateUrl('javascript:alert(1)')).toBe(false);
+    });
+
+    it('should reject data: protocol', () => {
+      expect(validateUrl('data:text/html,<h1>hi</h1>')).toBe(false);
+    });
+
+    it('should reject vbscript: protocol', () => {
+      expect(validateUrl('vbscript:MsgBox("hi")')).toBe(false);
+    });
+
+    it('should reject empty string', () => {
+      expect(validateUrl('')).toBe(false);
+    });
+
+    it('should reject non-URL strings', () => {
+      expect(validateUrl('not a url')).toBe(false);
+    });
+
+    it('should accept URLs with paths and params', () => {
+      expect(validateUrl('https://example.com/path?q=1&b=2#hash')).toBe(true);
+    });
+  });
+
+  describe('validateGitHubUsername', () => {
+    it('should accept valid usernames', () => {
+      expect(validateGitHubUsername('octocat')).toBe(true);
+      expect(validateGitHubUsername('user-name')).toBe(true);
+      expect(validateGitHubUsername('a')).toBe(true);
+    });
+
+    it('should reject usernames with special characters', () => {
+      expect(validateGitHubUsername('user<script>')).toBe(false);
+      expect(validateGitHubUsername('user"name')).toBe(false);
+      expect(validateGitHubUsername('user/name')).toBe(false);
+    });
+
+    it('should reject empty string', () => {
+      expect(validateGitHubUsername('')).toBe(false);
+    });
+
+    it('should reject usernames starting with hyphen', () => {
+      expect(validateGitHubUsername('-username')).toBe(false);
+    });
+
+    it('should reject usernames ending with hyphen', () => {
+      expect(validateGitHubUsername('username-')).toBe(false);
+    });
+
+    it('should accept usernames with numbers', () => {
+      expect(validateGitHubUsername('user123')).toBe(true);
+      expect(validateGitHubUsername('123user')).toBe(true);
+    });
+  });
+
+  describe('escapeHtmlAttribute', () => {
+    it('should escape double quotes', () => {
+      expect(escapeHtmlAttribute('"hello"')).toBe('&quot;hello&quot;');
+    });
+
+    it('should escape single quotes', () => {
+      expect(escapeHtmlAttribute("it's")).toBe('it&#039;s');
+    });
+
+    it('should escape angle brackets', () => {
+      expect(escapeHtmlAttribute('<script>')).toBe('&lt;script&gt;');
+    });
+
+    it('should escape ampersand', () => {
+      expect(escapeHtmlAttribute('a&b')).toBe('a&amp;b');
+    });
+
+    it('should handle combined injection payload', () => {
+      expect(escapeHtmlAttribute('" onload="alert(1)')).toBe('&quot; onload=&quot;alert(1)');
+    });
+
+    it('should return safe strings unchanged', () => {
+      expect(escapeHtmlAttribute('normaluser')).toBe('normaluser');
+    });
+
+    it('should handle empty string', () => {
+      expect(escapeHtmlAttribute('')).toBe('');
+    });
+  });
+
+  describe('generateSectionIds', () => {
+    it('should generate slugified ids from section names', () => {
+      const sections = [
+        { name: 'Introduction', type: 'default' },
+        { name: 'Demo', type: 'code' },
+      ];
+      const ids = generateSectionIds(sections);
+      expect(ids.get(sections[0])).toBe('introduction');
+      expect(ids.get(sections[1])).toBe('demo');
+    });
+
+    it('should deduplicate identical names with numeric suffix', () => {
+      const sections = [
+        { name: 'Topic', type: 'default' },
+        { name: 'Topic', type: 'default' },
+        { name: 'Topic', type: 'default' },
+      ];
+      const ids = generateSectionIds(sections);
+      expect(ids.get(sections[0])).toBe('topic');
+      expect(ids.get(sections[1])).toBe('topic-2');
+      expect(ids.get(sections[2])).toBe('topic-3');
+    });
+
+    it('should handle accented names', () => {
+      const sections = [{ name: 'Références', type: 'default' }];
+      const ids = generateSectionIds(sections);
+      expect(ids.get(sections[0])).toBe('references');
+    });
+
+    it('should handle special characters in names', () => {
+      const sections = [{ name: 'Q&A Session!', type: 'qna' }];
+      const ids = generateSectionIds(sections);
+      expect(ids.get(sections[0])).toBe('q-a-session');
+    });
+
+    it('should return a map with all sections', () => {
+      const sections = [
+        { name: 'A', type: 'default' },
+        { name: 'B', type: 'default' },
+        { name: 'C', type: 'default' },
+      ];
+      const ids = generateSectionIds(sections);
+      expect(ids.size).toBe(3);
     });
   });
 });

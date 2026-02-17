@@ -154,6 +154,7 @@ describe('generator', () => {
       const config = mergeDefaults({
         title: 'Advanced Talk',
         author: 'Jane',
+        multi_file: false,
         fonts: { sans: 'Inter', mono: 'Fira Code' },
         line_numbers: true,
         aspect_ratio: '4/3',
@@ -209,6 +210,7 @@ describe('generator', () => {
       const config = mergeDefaults({
         title: 'V1.4 Demo',
         author: 'Tester',
+        multi_file: false,
         language: 'en',
         sections: [
           { name: 'Code', type: 'code', lang: 'python' },
@@ -237,7 +239,7 @@ describe('generator', () => {
     it('should generate from v14-sections.yaml fixture', async () => {
       const { loadConfig } = await import('../src/config.js');
       const userConfig = await loadConfig(join(import.meta.dirname, 'fixtures/v14-sections.yaml'));
-      const config = mergeDefaults(userConfig);
+      const config = mergeDefaults({ ...userConfig, multi_file: false });
       await generate(config, tempDir);
 
       const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
@@ -256,6 +258,7 @@ describe('generator', () => {
       const config = mergeDefaults({
         title: 'Conference Talk',
         author: 'Jane',
+        multi_file: false,
         preset: 'conference',
         language: 'en',
       });
@@ -272,7 +275,7 @@ describe('generator', () => {
     it('should generate from preset-conference.yaml fixture', async () => {
       const { loadConfig } = await import('../src/config.js');
       const userConfig = await loadConfig(join(import.meta.dirname, 'fixtures/preset-conference.yaml'));
-      const config = mergeDefaults(userConfig);
+      const config = mergeDefaults({ ...userConfig, multi_file: false });
       await generate(config, tempDir);
 
       const slides = await readFile(join(tempDir, 'slides.md'), 'utf-8');
@@ -284,6 +287,7 @@ describe('generator', () => {
       const config = mergeDefaults({
         title: 'Test',
         author: 'Me',
+        multi_file: false,
         preset: 'conference',
         sections: ['Custom A', 'Custom B'],
       });
@@ -299,6 +303,7 @@ describe('generator', () => {
       const config = mergeDefaults({
         title: 'Quick Talk',
         author: 'Me',
+        multi_file: false,
         preset: 'lightning',
         language: 'fr',
       });
@@ -363,6 +368,7 @@ describe('generator', () => {
       const config = mergeDefaults({
         title: 'Test',
         author: 'Me',
+        multi_file: false,
         social: { twitter: 'testuser' },
       });
       await generate(config, tempDir);
@@ -397,10 +403,11 @@ describe('generator', () => {
       expect(intro).toContain('# Introduction');
     });
 
-    it('should generate single file when multi_file is not set', async () => {
+    it('should generate single file when multi_file is false', async () => {
       const config = mergeDefaults({
         title: 'Single File Talk',
         author: 'Me',
+        multi_file: false,
       });
       await generate(config, tempDir);
 

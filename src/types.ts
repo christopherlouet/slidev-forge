@@ -66,7 +66,6 @@ export interface UserConfig {
   slide_numbers?: boolean;
   colors?: { primary: string; secondary: string };
   multi_file?: boolean;
-  plugins?: string[];
 }
 
 export interface ResolvedConfig {
@@ -98,7 +97,6 @@ export interface ResolvedConfig {
   slide_numbers?: boolean;
   colors?: { primary: string; secondary: string };
   multi_file?: boolean;
-  plugins?: string[];
 }
 
 export interface ThemeDefinition {
@@ -135,7 +133,21 @@ export interface ParsedArgs {
   subcommandArgs?: string[];
 }
 
-export interface SectionPlugin {
-  type: string;
-  generate: (section: Section, config: ResolvedConfig) => string;
+export interface ParsedSlide {
+  id: string | null;
+  rawContent: string;
+  isFrontmatter: boolean;
+}
+
+export interface DiffAction {
+  type: 'add' | 'remove' | 'keep' | 'update-meta';
+  sectionId: string;
+  sectionName: string;
+  detail?: string;
+}
+
+export interface RegenerateResult {
+  actions: DiffAction[];
+  backupPath?: string;
+  filesUpdated: string[];
 }
