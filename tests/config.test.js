@@ -571,8 +571,8 @@ describe('config', () => {
   });
 
   describe('PRESETS', () => {
-    it('should export 4 presets', () => {
-      expect(Object.keys(PRESETS)).toEqual(['conference', 'workshop', 'lightning', 'pitch']);
+    it('should export 5 presets', () => {
+      expect(Object.keys(PRESETS)).toEqual(['conference', 'workshop', 'lightning', 'pitch', 'keynote']);
     });
 
     it('should return arrays of section objects with name and type', () => {
@@ -587,24 +587,29 @@ describe('config', () => {
       }
     });
 
-    it('conference should have 7 sections', () => {
+    it('conference should have 13 sections', () => {
       const sections = PRESETS.conference('fr');
-      expect(sections).toHaveLength(7);
+      expect(sections).toHaveLength(13);
     });
 
-    it('workshop should have 7 sections', () => {
+    it('workshop should have 13 sections', () => {
       const sections = PRESETS.workshop('fr');
-      expect(sections).toHaveLength(7);
+      expect(sections).toHaveLength(13);
     });
 
-    it('lightning should have 4 sections', () => {
+    it('lightning should have 6 sections', () => {
       const sections = PRESETS.lightning('fr');
-      expect(sections).toHaveLength(4);
+      expect(sections).toHaveLength(6);
     });
 
-    it('pitch should have 7 sections', () => {
+    it('pitch should have 11 sections', () => {
       const sections = PRESETS.pitch('fr');
-      expect(sections).toHaveLength(7);
+      expect(sections).toHaveLength(11);
+    });
+
+    it('keynote should have 17 sections', () => {
+      const sections = PRESETS.keynote('fr');
+      expect(sections).toHaveLength(17);
     });
 
     it('conference should use code and qna types', () => {
@@ -647,7 +652,7 @@ describe('config', () => {
   describe('mergeDefaults preset resolution', () => {
     it('should use preset sections when no sections provided', () => {
       const config = mergeDefaults({ title: 'Test', author: 'Me', preset: 'conference' });
-      expect(config.sections.length).toBe(7);
+      expect(config.sections.length).toBe(13);
     });
 
     it('should prefer explicit sections over preset', () => {
@@ -682,6 +687,115 @@ describe('config', () => {
       const frConfig = mergeDefaults({ title: 'Test', author: 'Me', preset: 'conference', language: 'fr' });
       const frNames = frConfig.sections.map((s) => s.name);
       expect(names).not.toEqual(frNames);
+    });
+  });
+
+  describe('v3.0 SECTION_TYPES', () => {
+    it('should contain v3.0 types section-divider, statement, image-left, image', () => {
+      expect(SECTION_TYPES).toContain('section-divider');
+      expect(SECTION_TYPES).toContain('statement');
+      expect(SECTION_TYPES).toContain('image-left');
+      expect(SECTION_TYPES).toContain('image');
+    });
+  });
+
+  describe('v3.0 normalizeSections - new fields', () => {
+    it('should preserve notes field on sections', () => {
+      const result = normalizeSections([{ name: 'Intro', type: 'default', notes: 'Custom note' }]);
+      expect(result[0].notes).toBe('Custom note');
+    });
+
+    it('should preserve clicks field on sections', () => {
+      const result = normalizeSections([{ name: 'Intro', type: 'default', clicks: true }]);
+      expect(result[0].clicks).toBe(true);
+    });
+
+    it('should preserve highlights field on code sections', () => {
+      const result = normalizeSections([{ name: 'Code', type: 'code', highlights: '1-3|5' }]);
+      expect(result[0].highlights).toBe('1-3|5');
+    });
+
+    it('should preserve file field on code sections', () => {
+      const result = normalizeSections([{ name: 'Code', type: 'code', file: 'snippets/demo.ts' }]);
+      expect(result[0].file).toBe('snippets/demo.ts');
+    });
+
+    it('should preserve transition field on sections', () => {
+      const result = normalizeSections([{ name: 'Intro', type: 'default', transition: 'zoom' }]);
+      expect(result[0].transition).toBe('zoom');
+    });
+
+    it('should accept section-divider type', () => {
+      const result = normalizeSections([{ name: 'Part 2', type: 'section-divider' }]);
+      expect(result[0].type).toBe('section-divider');
+    });
+
+    it('should accept statement type', () => {
+      const result = normalizeSections([{ name: 'Impact', type: 'statement' }]);
+      expect(result[0].type).toBe('statement');
+    });
+
+    it('should accept image-left type', () => {
+      const result = normalizeSections([{ name: 'Visual', type: 'image-left' }]);
+      expect(result[0].type).toBe('image-left');
+    });
+
+    it('should accept image type', () => {
+      const result = normalizeSections([{ name: 'Photo', type: 'image' }]);
+      expect(result[0].type).toBe('image');
+    });
+
+    it('should warn and strip invalid highlights format', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const result = normalizeSections([{ name: 'Code', type: 'code', highlights: '<script>alert(1)</script>' }]);
+      expect(result[0].highlights).toBeUndefined();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('highlights'));
+      warnSpy.mockRestore();
+    });
+
+    it('should accept valid highlights formats', () => {
+      const validFormats = ['1-3|5', 'all', '1,3,5', '1-3|5-8|10', '1', '1-3'];
+      for (const format of validFormats) {
+        const result = normalizeSections([{ name: 'Code', type: 'code', highlights: format }]);
+        expect(result[0].highlights).toBe(format);
+      }
+    });
+
+    it('should warn and strip invalid file path', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const result = normalizeSections([{ name: 'Code', type: 'code', file: '../etc/passwd' }]);
+      expect(result[0].file).toBeUndefined();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('file'));
+      warnSpy.mockRestore();
+    });
+
+    it('should accept valid file paths', () => {
+      const validPaths = ['snippets/demo.ts', 'code/app.js', 'src/example.py'];
+      for (const path of validPaths) {
+        const result = normalizeSections([{ name: 'Code', type: 'code', file: path }]);
+        expect(result[0].file).toBe(path);
+      }
+    });
+
+    it('should warn and strip invalid section transition', () => {
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const result = normalizeSections([{ name: 'Intro', type: 'default', transition: 'invalid-transition' }]);
+      expect(result[0].transition).toBeUndefined();
+      expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('transition'));
+      warnSpy.mockRestore();
+    });
+
+    it('should accept valid section transitions', () => {
+      const validTransitions = ['slide-left', 'slide-up', 'fade', 'zoom', 'none'];
+      for (const trans of validTransitions) {
+        const result = normalizeSections([{ name: 'Intro', type: 'default', transition: trans }]);
+        expect(result[0].transition).toBe(trans);
+      }
+    });
+
+    it('should sanitize notes with HTML content', () => {
+      const result = normalizeSections([{ name: 'Intro', type: 'default', notes: 'Note with <script>alert(1)</script>' }]);
+      expect(result[0].notes).not.toContain('<script>');
     });
   });
 });

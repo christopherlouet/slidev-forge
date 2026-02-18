@@ -4,52 +4,104 @@ import { slugify, sanitizeProjectName, validateGitHubUsername, validateUrl, sani
 import { THEMES, DEFAULT_THEME, TRANSITIONS, DEFAULT_TRANSITION, buildCustomTheme } from './themes.js';
 import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, t } from './i18n.js';
 import type { Section, UserConfig, ResolvedConfig, ExportConfig, OptionsConfig } from './types.js';
+import { getPresetContent } from './preset-content.js';
 
 const VALID_COLOR_SCHEMAS = ['light', 'dark', 'auto'] as const;
 const ASPECT_RATIO_REGEX = /^\d+\/\d+$/;
 const SAFE_ADDON_REGEX = /^[a-z0-9@\/._-]+$/i;
 const SAFE_FONT_KEY_REGEX = /^[a-zA-Z][a-zA-Z0-9]*$/;
+const HIGHLIGHTS_REGEX = /^((\d+(-\d+)?)(,\d+(-\d+)?)*(\|(\d+(-\d+)?)(,\d+(-\d+)?)*)*)$|^all$/;
+const SAFE_FILE_PATH_REGEX = /^[a-zA-Z0-9._\/-]+$/;
 const VALID_MERMAID_TYPES = [
   'flowchart', 'graph', 'sequenceDiagram', 'classDiagram', 'stateDiagram',
   'erDiagram', 'gantt', 'pie', 'gitgraph', 'mindmap', 'timeline',
   'quadrantChart', 'sankey', 'xychart', 'block',
 ];
 
-export const SECTION_TYPES: string[] = ['default', 'two-cols', 'image-right', 'quote', 'qna', 'thanks', 'about', 'code', 'diagram', 'cover', 'iframe', 'steps', 'fact'];
+export const SECTION_TYPES: string[] = ['default', 'two-cols', 'image-right', 'quote', 'qna', 'thanks', 'about', 'code', 'diagram', 'cover', 'iframe', 'steps', 'fact', 'section-divider', 'statement', 'image-left', 'image'];
+
+function enrichSection(preset: string, key: string, section: Section, lang: string): Section {
+  const pc = getPresetContent(preset, key, lang);
+  if (!pc) return section;
+  return {
+    ...section,
+    ...(pc.content ? { content: pc.content } : {}),
+    ...(pc.items ? { items: pc.items } : {}),
+    ...(pc.value ? { value: pc.value } : {}),
+    ...(pc.description ? { description: pc.description } : {}),
+  };
+}
 
 export const PRESETS: Record<string, (lang: string) => Section[]> = {
   conference: (lang: string) => [
-    { name: t('preset_intro', lang), type: 'default' },
-    { name: t('preset_about', lang), type: 'about' },
-    { name: t('preset_topic', lang) + ' 1', type: 'default' },
-    { name: t('preset_topic', lang) + ' 2', type: 'default' },
-    { name: t('preset_demo', lang), type: 'code' },
-    { name: t('preset_qna', lang), type: 'qna' },
-    { name: t('preset_thanks', lang), type: 'thanks' },
+    enrichSection('conference', 'intro', { name: t('preset_intro', lang), type: 'default' }, lang),
+    enrichSection('conference', 'about', { name: t('preset_about', lang), type: 'about' }, lang),
+    { name: t('preset_topic', lang) + ' 1', type: 'section-divider' },
+    enrichSection('conference', 'topic', { name: t('preset_topic', lang) + ' 1', type: 'default' }, lang),
+    enrichSection('conference', 'topic', { name: t('preset_topic', lang) + ' 2', type: 'default' }, lang),
+    { name: t('preset_topic', lang) + ' 2', type: 'section-divider' },
+    enrichSection('conference', 'topic', { name: t('preset_topic', lang) + ' 3', type: 'default' }, lang),
+    enrichSection('conference', 'demo', { name: t('preset_demo', lang), type: 'code' }, lang),
+    enrichSection('conference', 'takeaways', { name: t('preset_takeaways', lang), type: 'steps', clicks: true }, lang),
+    enrichSection('conference', 'diagram', { name: t('preset_architecture', lang), type: 'diagram' }, lang),
+    enrichSection('conference', 'impact', { name: t('preset_impact', lang), type: 'fact' }, lang),
+    enrichSection('conference', 'qna', { name: t('preset_qna', lang), type: 'qna' }, lang),
+    enrichSection('conference', 'thanks', { name: t('preset_thanks', lang), type: 'thanks' }, lang),
   ],
   workshop: (lang: string) => [
-    { name: t('preset_intro', lang), type: 'default' },
-    { name: t('preset_prereq', lang), type: 'steps' },
-    { name: t('preset_module', lang) + ' 1', type: 'default' },
-    { name: t('preset_module', lang) + ' 2', type: 'default' },
-    { name: t('preset_exercise', lang), type: 'code' },
-    { name: t('preset_recap', lang), type: 'steps' },
-    { name: t('preset_resources', lang), type: 'default' },
+    enrichSection('workshop', 'intro', { name: t('preset_intro', lang), type: 'default' }, lang),
+    enrichSection('workshop', 'prerequis', { name: t('preset_prereq', lang), type: 'steps' }, lang),
+    { name: t('preset_module', lang) + ' 1', type: 'section-divider' },
+    enrichSection('workshop', 'module', { name: t('preset_module', lang) + ' 1', type: 'default' }, lang),
+    enrichSection('workshop', 'exercise', { name: t('preset_exercise', lang) + ' 1', type: 'code' }, lang),
+    enrichSection('workshop', 'checkpoint', { name: t('preset_checkpoint', lang) + ' 1', type: 'steps' }, lang),
+    { name: t('preset_module', lang) + ' 2', type: 'section-divider' },
+    enrichSection('workshop', 'module', { name: t('preset_module', lang) + ' 2', type: 'default' }, lang),
+    enrichSection('workshop', 'exercise', { name: t('preset_exercise', lang) + ' 2', type: 'code' }, lang),
+    enrichSection('workshop', 'checkpoint', { name: t('preset_checkpoint', lang) + ' 2', type: 'steps' }, lang),
+    enrichSection('workshop', 'diagram', { name: t('preset_architecture', lang), type: 'diagram' }, lang),
+    enrichSection('workshop', 'recap', { name: t('preset_recap', lang), type: 'steps' }, lang),
+    enrichSection('workshop', 'resources', { name: t('preset_resources', lang), type: 'default' }, lang),
   ],
   lightning: (lang: string) => [
-    { name: t('preset_problem', lang), type: 'default' },
-    { name: t('preset_solution', lang), type: 'default' },
-    { name: t('preset_demo', lang), type: 'code' },
-    { name: t('preset_cta', lang), type: 'fact' },
+    enrichSection('lightning', 'hook', { name: t('preset_hook', lang), type: 'statement' }, lang),
+    enrichSection('lightning', 'problem', { name: t('preset_problem', lang), type: 'default' }, lang),
+    enrichSection('lightning', 'solution', { name: t('preset_solution', lang), type: 'default' }, lang),
+    enrichSection('lightning', 'demo', { name: t('preset_demo', lang), type: 'code' }, lang),
+    enrichSection('lightning', 'cta', { name: t('preset_cta', lang), type: 'fact' }, lang),
+    enrichSection('lightning', 'thanks', { name: t('preset_thanks', lang), type: 'thanks' }, lang),
   ],
   pitch: (lang: string) => [
-    { name: t('preset_problem', lang), type: 'default' },
-    { name: t('preset_solution', lang), type: 'default' },
-    { name: t('preset_market', lang), type: 'fact' },
-    { name: t('preset_product', lang), type: 'default' },
-    { name: t('preset_business', lang), type: 'default' },
-    { name: t('preset_team', lang), type: 'about' },
-    { name: t('preset_ask', lang), type: 'fact' },
+    enrichSection('pitch', 'hook', { name: t('preset_hook', lang), type: 'statement' }, lang),
+    enrichSection('pitch', 'problem', { name: t('preset_problem', lang), type: 'default' }, lang),
+    { name: t('preset_solution', lang), type: 'section-divider' },
+    enrichSection('pitch', 'solution', { name: t('preset_solution', lang), type: 'default' }, lang),
+    enrichSection('pitch', 'product', { name: t('preset_product', lang), type: 'default' }, lang),
+    enrichSection('pitch', 'market', { name: t('preset_market', lang), type: 'fact' }, lang),
+    enrichSection('pitch', 'business', { name: t('preset_business', lang), type: 'default' }, lang),
+    enrichSection('pitch', 'impact', { name: t('preset_impact', lang), type: 'fact' }, lang),
+    enrichSection('pitch', 'team', { name: t('preset_team', lang), type: 'about' }, lang),
+    enrichSection('pitch', 'ask', { name: t('preset_ask', lang), type: 'fact' }, lang),
+    enrichSection('pitch', 'thanks', { name: t('preset_thanks', lang), type: 'thanks' }, lang),
+  ],
+  keynote: (lang: string) => [
+    { name: t('preset_intro', lang), type: 'cover' },
+    enrichSection('keynote', 'hook', { name: t('preset_hook', lang), type: 'statement' }, lang),
+    enrichSection('keynote', 'about', { name: t('preset_about', lang), type: 'about' }, lang),
+    { name: t('preset_problem', lang), type: 'section-divider' },
+    enrichSection('keynote', 'context', { name: t('preset_context', lang), type: 'default' }, lang),
+    enrichSection('keynote', 'impact', { name: t('preset_impact', lang), type: 'fact' }, lang),
+    enrichSection('keynote', 'illustration', { name: t('preset_illustration', lang), type: 'image' }, lang),
+    { name: t('preset_journey', lang), type: 'section-divider' },
+    enrichSection('keynote', 'steps', { name: t('preset_steps', lang), type: 'steps', clicks: true }, lang),
+    enrichSection('keynote', 'demo', { name: t('preset_demo', lang), type: 'code' }, lang),
+    enrichSection('keynote', 'architecture', { name: t('preset_architecture', lang), type: 'diagram' }, lang),
+    { name: t('preset_vision', lang), type: 'section-divider' },
+    enrichSection('keynote', 'comparison', { name: t('preset_comparison', lang), type: 'two-cols' }, lang),
+    enrichSection('keynote', 'result', { name: t('preset_result', lang), type: 'fact' }, lang),
+    enrichSection('keynote', 'cta', { name: t('preset_cta', lang), type: 'statement' }, lang),
+    enrichSection('keynote', 'qna', { name: t('preset_qna', lang), type: 'qna' }, lang),
+    enrichSection('keynote', 'thanks', { name: t('preset_thanks', lang), type: 'thanks' }, lang),
   ],
 };
 
@@ -85,6 +137,39 @@ export function normalizeSections(sections: (string | Section)[]): Section[] {
           console.warn(`Invalid diagram type "${firstWord}", falling back to "flowchart TD"`);
           result.diagram = 'flowchart TD';
         }
+      }
+    }
+
+    // v3.0: Validate section.highlights
+    if (result.highlights !== undefined) {
+      if (typeof result.highlights !== 'string' || !HIGHLIGHTS_REGEX.test(result.highlights)) {
+        console.warn(`Invalid highlights format "${result.highlights}", ignoring`);
+        delete result.highlights;
+      }
+    }
+
+    // v3.0: Validate section.file
+    if (result.file !== undefined) {
+      if (typeof result.file !== 'string' || !SAFE_FILE_PATH_REGEX.test(result.file) || result.file.includes('..')) {
+        console.warn(`Invalid file path "${result.file}", ignoring`);
+        delete result.file;
+      }
+    }
+
+    // v3.0: Validate section.transition
+    if (result.transition !== undefined) {
+      if (typeof result.transition !== 'string' || !TRANSITIONS.includes(result.transition)) {
+        console.warn(`Invalid section transition "${result.transition}", ignoring`);
+        delete result.transition;
+      }
+    }
+
+    // v3.0: Sanitize section.notes
+    if (result.notes !== undefined) {
+      if (typeof result.notes !== 'string') {
+        delete result.notes;
+      } else {
+        result.notes = result.notes.replace(/<[^>]*>/g, '');
       }
     }
 

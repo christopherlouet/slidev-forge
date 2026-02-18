@@ -1,39 +1,8 @@
 import { getTheme } from '../themes.js';
 import { t } from '../i18n.js';
-import { generateSectionIds, escapeHtml, escapeHtmlAttribute, validateUrl, sanitizeYamlScalar } from '../utils.js';
-import type { ResolvedConfig, Section, ThemeDefinition, SocialConfig } from '../types.js';
-
-interface SocialPlatformDef {
-  url: string;
-  icon: string;
-}
-
-const SOCIAL_PLATFORMS: Record<string, SocialPlatformDef> = {
-  twitter: { url: 'https://twitter.com/', icon: 'carbon-logo-twitter' },
-  linkedin: { url: 'https://linkedin.com/in/', icon: 'carbon-logo-linkedin' },
-  github: { url: 'https://github.com/', icon: 'carbon-logo-github' },
-  website: { url: '', icon: 'carbon-link' },
-  youtube: { url: 'https://youtube.com/@', icon: 'carbon-logo-youtube' },
-  mastodon: { url: '', icon: 'carbon-user-favorite' },
-  bluesky: { url: 'https://bsky.app/profile/', icon: 'carbon-cloud' },
-  instagram: { url: 'https://instagram.com/', icon: 'carbon-logo-instagram' },
-  email: { url: 'mailto:', icon: 'carbon-email' },
-};
-
-function generateSocialLinks(social: SocialConfig | undefined): string {
-  if (!social || typeof social !== 'object') return '';
-  const links: string[] = [];
-  for (const [platform, handle] of Object.entries(social)) {
-    const def = SOCIAL_PLATFORMS[platform];
-    if (!def) continue;
-    const href = `${def.url}${escapeHtmlAttribute(String(handle))}`;
-    links.push(
-      `  <a href="${href}" target="_blank" class="text-xl slidev-icon-btn opacity-50 !border-none">\n    <${def.icon} />\n  </a>`,
-    );
-  }
-  if (links.length === 0) return '';
-  return `\n<div class="abs-br m-6 flex gap-2">\n${links.join('\n')}\n</div>`;
-}
+import { generateSectionIds, escapeHtmlAttribute, sanitizeYamlScalar } from '../utils.js';
+import { generateSectionContent, generateSectionNotes, generateSocialLinks } from './section-content.js';
+import type { ResolvedConfig, ThemeDefinition } from '../types.js';
 
 export function generateSlides(config: ResolvedConfig): string {
   const theme = getTheme(config.visual_theme);
@@ -46,7 +15,9 @@ export function generateSlides(config: ResolvedConfig): string {
 
   for (const section of config.sections) {
     const id = sectionIds.get(section) || 'unknown';
-    parts.push(generateSectionSlide(section, config, id));
+    const { frontmatter, body } = generateSectionContent(section, config, id);
+    const notes = generateSectionNotes(section, config);
+    parts.push([...frontmatter, '---', ...body, ...notes, ''].join('\n'));
   }
 
   return parts.join('\n---\n');
@@ -189,160 +160,5 @@ function generateTocSlide(config: ResolvedConfig): string {
     '<Toc minDepth="1" maxDepth="2"></Toc>',
     '',
   ];
-  return lines.join('\n');
-}
-
-function generateSectionSlide(section: Section, config: ResolvedConfig, id: string): string {
-  const lang = config.language;
-  const sectionTitle = section.name;
-  const sectionType = section.type;
-  const marker = `<!-- section:id=${id} -->`;
-  const lines: string[] = [`transition: ${config.transition}`];
-
-  if (sectionType === 'two-cols') {
-    lines.push('layout: two-cols');
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${sectionTitle}`);
-    lines.push('');
-    lines.push(`<!-- ${t('comment_left_column', lang)} -->`);
-    lines.push('');
-    lines.push('::right::');
-    lines.push('');
-    lines.push(`<!-- ${t('comment_right_column', lang)} -->`);
-  } else if (sectionType === 'image-right') {
-    lines.push('layout: image-right');
-    lines.push('image: https://cover.sli.dev');
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${sectionTitle}`);
-    lines.push('');
-    lines.push(`<!-- ${t('comment_image_content', lang)} -->`);
-  } else if (sectionType === 'quote') {
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${sectionTitle}`);
-    lines.push('');
-    lines.push(`> ${t('comment_replace_quote', lang)}`);
-    lines.push('');
-    lines.push(`-- ${t('comment_quote_author', lang)}`);
-  } else if (sectionType === 'qna') {
-    lines.push('layout: center');
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${sectionTitle}`);
-    lines.push('');
-    lines.push(t('comment_qna', lang));
-  } else if (sectionType === 'thanks') {
-    lines.push('layout: center');
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${sectionTitle}`);
-    lines.push('');
-    lines.push(`${config.author}`);
-    const thanksSocial = generateSocialLinks(config.social);
-    if (thanksSocial) {
-      lines.push(thanksSocial);
-    } else if (config.github) {
-      lines.push('');
-      lines.push(`[github.com/${config.github}](https://github.com/${config.github})`);
-    }
-  } else if (sectionType === 'about') {
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${sectionTitle}`);
-    lines.push('');
-    lines.push(`**${config.author}**`);
-    lines.push('');
-    lines.push(`<!-- ${t('comment_add_bio', lang)} -->`);
-  } else if (sectionType === 'code') {
-    const codeLang = section.lang || 'javascript';
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${sectionTitle}`);
-    lines.push('');
-    lines.push(`\`\`\`${codeLang} {lines:true}`);
-    lines.push(`// ${t('comment_code_placeholder', lang)}`);
-    lines.push('```');
-  } else if (sectionType === 'diagram') {
-    const diagramType = section.diagram || 'flowchart TD';
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${sectionTitle}`);
-    lines.push('');
-    lines.push('```mermaid');
-    lines.push(diagramType);
-    lines.push('  A[Start] --> B[End]');
-    lines.push('```');
-  } else if (sectionType === 'cover') {
-    const image = section.image || 'https://cover.sli.dev';
-    lines.push('layout: cover');
-    lines.push(`background: ${image}`);
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${sectionTitle}`);
-  } else if (sectionType === 'iframe') {
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${sectionTitle}`);
-    lines.push('');
-    if (section.url && validateUrl(section.url)) {
-      lines.push(`<iframe src="${escapeHtmlAttribute(section.url)}" class="w-full h-full rounded" />`);
-    } else {
-      lines.push(`<!-- ${t('comment_iframe_no_url', lang)} -->`);
-    }
-  } else if (sectionType === 'steps') {
-    const items = section.items || [
-      `${t('comment_steps_item', lang)} 1`,
-      `${t('comment_steps_item', lang)} 2`,
-      `${t('comment_steps_item', lang)} 3`,
-    ];
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${sectionTitle}`);
-    lines.push('');
-    lines.push('<v-clicks>');
-    lines.push('');
-    for (const item of items) {
-      lines.push(`- ${item}`);
-    }
-    lines.push('');
-    lines.push('</v-clicks>');
-  } else if (sectionType === 'fact') {
-    const value = section.value || t('comment_fact_default_value', lang);
-    const description = section.description || t('comment_fact_default_desc', lang);
-    lines.push('layout: center');
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${sectionTitle}`);
-    lines.push('');
-    lines.push(`<div class="text-8xl font-bold">${escapeHtml(value)}</div>`);
-    lines.push(`<p class="text-2xl mt-4 opacity-70">${escapeHtml(description)}</p>`);
-  } else {
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${sectionTitle}`);
-    lines.push('');
-    lines.push(`<!-- ${t('comment_section_content', lang)} "${sectionTitle}" -->`);
-  }
-
-  lines.push('');
-  lines.push('<!--');
-  lines.push(`${t('section_notes', lang)} "${sectionTitle}"`);
-  lines.push('-->');
-  lines.push('');
   return lines.join('\n');
 }
