@@ -29,6 +29,21 @@ export const THEMES: Record<string, ThemeDefinition> = {
     codeBlockBg: '#0D0D0D',
     backgroundColor: '#0A0A0A',
     textColor: '#A0FFA0',
+    font: 'Fira Code',
+    defaultTransition: 'fade',
+    extraCSS: `h1 {
+    text-shadow: 0 0 10px #00FF41, 0 0 20px #00FF41, 0 0 40px #00FF4180;
+}
+.slidev-code-wrapper pre {
+    border: 1px solid #00FF4140;
+    border-left: 3px solid #00FF41;
+}
+strong, b {
+    color: #00D9FF;
+}
+blockquote {
+    border-left-color: #00FF41;
+}`,
   },
   dracula: {
     name: 'Dracula',

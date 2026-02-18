@@ -29,6 +29,8 @@ function enrichSection(preset: string, key: string, section: Section, lang: stri
     ...(pc.items ? { items: pc.items } : {}),
     ...(pc.value ? { value: pc.value } : {}),
     ...(pc.description ? { description: pc.description } : {}),
+    ...(pc.code ? { code: pc.code } : {}),
+    ...(pc.diagram ? { diagram: pc.diagram } : {}),
   };
 }
 

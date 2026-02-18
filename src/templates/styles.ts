@@ -6,7 +6,12 @@ export function generateStyles(config: ResolvedConfig): string {
   const theme = getTheme(config.visual_theme);
   const [color1, color2] = theme.h1Colors;
 
-  let css = `h1 {
+  let css = `.slidev-page {
+    background: ${theme.backgroundColor};
+    color: ${theme.textColor};
+}
+
+h1 {
     background-color: ${color1};
     background-image: linear-gradient(45deg, ${color1} 10%, ${color2} 20%);
     background-size: 100%;
@@ -28,12 +33,17 @@ a:hover {
 
 .slidev-code-wrapper pre {
     background: ${theme.codeBlockBg} !important;
+    border-left: 3px solid ${theme.accentColor};
 }
 
 li::marker {
     color: ${theme.accentColor};
 }
 `;
+
+  if (theme.extraCSS) {
+    css += `\n${theme.extraCSS}\n`;
+  }
 
   if (config.logo) {
     try {

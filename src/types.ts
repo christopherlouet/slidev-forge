@@ -4,6 +4,7 @@ export interface Section {
   lang?: string;
   url?: string;
   image?: string;
+  code?: string;
   diagram?: string;
   items?: string[];
   value?: string;
@@ -119,6 +120,10 @@ export interface ThemeDefinition {
   codeBlockBg: string;
   backgroundColor: string;
   textColor: string;
+  // v3.1 - Optional extended properties
+  font?: string;
+  extraCSS?: string;
+  defaultTransition?: string;
 }
 
 export interface GenerateResult {
