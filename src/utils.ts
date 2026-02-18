@@ -81,14 +81,9 @@ export function sanitizeCssUrlPath(value: string): string {
 }
 
 export function sanitizeProjectName(name: string): string {
-  let cleaned = name;
-  let prev = '';
-  while (cleaned !== prev) {
-    prev = cleaned;
-    cleaned = cleaned.replace(/\.\.\//g, '').replace(/\.\//g, '');
-  }
-  cleaned = cleaned.replace(/^\.+/, '');
-  const result = slugify(cleaned);
+  // slugify converts all non-alphanumeric characters (including . and /)
+  // to hyphens, then trims them — path traversal is structurally impossible
+  const result = slugify(name);
   if (!result) {
     throw new Error('Project name cannot be empty after sanitization');
   }
