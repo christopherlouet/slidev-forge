@@ -1,8 +1,9 @@
 # slidev-forge
 
-[![npm version](https://img.shields.io/npm/v/slidev-forge)](https://www.npmjs.com/package/slidev-forge)
-[![license](https://img.shields.io/npm/l/slidev-forge)](LICENSE)
-[![node](https://img.shields.io/node/v/slidev-forge)](package.json)
+[![CI](https://github.com/christopherlouet/slidev-forge/actions/workflows/ci.yml/badge.svg)](https://github.com/christopherlouet/slidev-forge/actions/workflows/ci.yml)
+[![version](https://img.shields.io/badge/version-2.1.0-blue)](https://github.com/christopherlouet/slidev-forge/releases/tag/v2.1.0)
+[![license](https://img.shields.io/github/license/christopherlouet/slidev-forge)](LICENSE)
+[![node](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](package.json)
 
 Scaffold complete [Slidev](https://sli.dev) presentation projects from a YAML config file or interactive prompts.
 
