@@ -1,6 +1,8 @@
 import { spawnSync } from 'node:child_process';
+import { resolve } from 'node:path';
 import { writeFile, copyStaticFile } from './writer.js';
 import { escapeHtml } from './utils.js';
+import { getConference, CONFERENCE_ASSETS_DIR } from './conferences.js';
 import { generateSlides } from './templates/slides.js';
 import { generateMultiFile } from './templates/multi-file.js';
 import { generatePackageJson } from './templates/package-json.js';
@@ -52,6 +54,15 @@ export async function generate(config: ResolvedConfig, destDir: string, options:
 </template>
 `;
     files.push(await writeFile(destDir, 'global-bottom.vue', footerVue));
+  }
+
+  // Conference logo: copy SVG to public/ for local serving
+  if (config.conference) {
+    const conf = getConference(config.conference);
+    if (conf) {
+      const logoSrc = resolve(CONFERENCE_ASSETS_DIR, conf.logo);
+      files.push(await copyStaticFile(logoSrc, destDir, `public/${conf.logo}`));
+    }
   }
 
   // Empty directories

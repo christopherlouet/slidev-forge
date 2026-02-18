@@ -6,7 +6,12 @@ export function generateStyles(config: ResolvedConfig): string {
   const theme = getTheme(config.visual_theme);
   const [color1, color2] = theme.h1Colors;
 
-  let css = `h1 {
+  let css = `.slidev-page {
+    background: ${theme.backgroundColor};
+    color: ${theme.textColor};
+}
+
+h1 {
     background-color: ${color1};
     background-image: linear-gradient(45deg, ${color1} 10%, ${color2} 20%);
     background-size: 100%;
@@ -28,6 +33,7 @@ a:hover {
 
 .slidev-code-wrapper pre {
     background: ${theme.codeBlockBg} !important;
+    border-left: 3px solid ${theme.accentColor};
 }
 
 li::marker {
@@ -35,9 +41,23 @@ li::marker {
 }
 `;
 
+  if (theme.extraCSS) {
+    css += `\n${theme.extraCSS}\n`;
+  }
+
   if (config.logo) {
-    try {
-      const safeLogo = sanitizeCssUrlPath(config.logo);
+    let logoUrl: string | null = null;
+    if (config.logo.startsWith('https://')) {
+      logoUrl = config.logo;
+    } else {
+      try {
+        const safeLogo = sanitizeCssUrlPath(config.logo);
+        logoUrl = `/${safeLogo}`;
+      } catch {
+        // Skip logo CSS if path is unsafe
+      }
+    }
+    if (logoUrl) {
       css += `
 .slidev-layout::after {
     content: '';
@@ -46,12 +66,10 @@ li::marker {
     right: 1rem;
     width: 48px;
     height: 48px;
-    background: url('/${safeLogo}') no-repeat center / contain;
+    background: url('${logoUrl}') no-repeat center / contain;
     pointer-events: none;
 }
 `;
-    } catch {
-      // Skip logo CSS if path is unsafe
     }
   }
 

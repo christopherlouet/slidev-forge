@@ -120,6 +120,13 @@ export function generateSectionContent(
         ? ` {${section.highlights}}{lines:true}`
         : '';
       body.push(`<<< @/${section.file}${highlightSpec}`);
+    } else if (section.code) {
+      const highlightSpec = section.highlights && section.highlights !== 'all'
+        ? `{${section.highlights}}`
+        : '{lines:true}';
+      body.push(`\`\`\`${codeLang} ${highlightSpec}`);
+      body.push(section.code);
+      body.push('```');
     } else {
       const highlightSpec = section.highlights && section.highlights !== 'all'
         ? `{${section.highlights}}`
@@ -129,15 +136,19 @@ export function generateSectionContent(
       body.push('```');
     }
   } else if (sectionType === 'diagram') {
-    const diagramType = section.diagram || 'flowchart TD';
     body.push(marker, '', `# ${sectionTitle}`, '');
     if (section.clicks) {
       body.push('<v-click>');
       body.push('');
     }
     body.push('```mermaid');
-    body.push(diagramType);
-    body.push('  A[Start] --> B[End]');
+    if (section.diagram && section.diagram.includes('\n')) {
+      body.push(section.diagram);
+    } else {
+      const diagramType = section.diagram || 'flowchart TD';
+      body.push(diagramType);
+      body.push('  A[Start] --> B[End]');
+    }
     body.push('```');
     if (section.clicks) {
       body.push('');

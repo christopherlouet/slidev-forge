@@ -29,16 +29,16 @@ export const PRESET_CONTENT_REGISTRY: Record<string, PresetContentMap> = {
     }),
     topic: (lang) => ({
       content: lang === 'fr'
-        ? ['- Concept principal et definition', '- Pourquoi c\'est important aujourd\'hui', '- Cas d\'usage concrets']
-        : ['- Main concept and definition', '- Why it matters today', '- Concrete use cases'],
+        ? ['- Separation des responsabilites avec Clean Architecture', '- Les 4 couches : Domain, Application, Infrastructure, Presentation', '- Inversion de dependances et injection via interfaces']
+        : ['- Separation of concerns with Clean Architecture', '- The 4 layers: Domain, Application, Infrastructure, Presentation', '- Dependency inversion and injection via interfaces'],
     }),
     demo: (lang) => ({
       content: lang === 'fr'
         ? ['Exemple de code illustrant le concept :']
         : ['Code example illustrating the concept:'],
       code: lang === 'fr'
-        ? '// Exemple : pattern Observer\nclass EventEmitter {\n  listeners = new Map();\n  on(event, fn) { this.listeners.set(event, fn); }\n  emit(event, data) { this.listeners.get(event)?.(data); }\n}'
-        : '// Example: Observer pattern\nclass EventEmitter {\n  listeners = new Map();\n  on(event, fn) { this.listeners.set(event, fn); }\n  emit(event, data) { this.listeners.get(event)?.(data); }\n}',
+        ? '// Architecture Plugin avec middleware\nclass App {\n  private middleware: Function[] = [];\n  // Enregistrer un middleware\n  use(fn: Function) {\n    this.middleware.push(fn);\n    return this; // chainage fluide\n  }\n  // Executer la chaine\n  async execute(ctx: Record<string, unknown>) {\n    for (const fn of this.middleware) {\n      await fn(ctx);\n    }\n    return ctx;\n  }\n}'
+        : '// Plugin Architecture with middleware\nclass App {\n  private middleware: Function[] = [];\n  // Register a middleware\n  use(fn: Function) {\n    this.middleware.push(fn);\n    return this; // fluent chaining\n  }\n  // Execute the chain\n  async execute(ctx: Record<string, unknown>) {\n    for (const fn of this.middleware) {\n      await fn(ctx);\n    }\n    return ctx;\n  }\n}',
     }),
     qna: (lang) => ({
       content: lang === 'fr'
@@ -55,29 +55,31 @@ export const PRESET_CONTENT_REGISTRY: Record<string, PresetContentMap> = {
         ? ['Ce qu\'il faut retenir :']
         : ['Key takeaways:'],
       items: lang === 'fr'
-        ? ['Concept principal et son application', 'Bonnes pratiques a adopter', 'Erreurs courantes a eviter']
-        : ['Main concept and its application', 'Best practices to adopt', 'Common mistakes to avoid'],
+        ? ['Isoler la logique metier dans le Domain Layer', 'Utiliser l\'injection de dependances pour decouple les couches', 'Tester chaque couche independamment avec des doubles de test']
+        : ['Isolate business logic in the Domain Layer', 'Use dependency injection to decouple layers', 'Test each layer independently with test doubles'],
     }),
     diagram: (lang) => ({
       content: lang === 'fr'
         ? ['Vue d\'ensemble de l\'architecture :']
         : ['Architecture overview:'],
-      diagram: 'flowchart LR',
+      diagram: lang === 'fr'
+        ? 'flowchart TD\n  Client[Client Web] --> API[API Gateway]\n  API --> Auth[Service Auth]\n  API --> Core[Service Metier]\n  Core --> DB[(Base de Donnees)]\n  Core --> Cache[Cache Redis]\n  Auth --> DB'
+        : 'flowchart TD\n  Client[Web Client] --> API[API Gateway]\n  API --> Auth[Auth Service]\n  API --> Core[Business Service]\n  Core --> DB[(Database)]\n  Core --> Cache[Redis Cache]\n  Auth --> DB',
     }),
     impact: (lang) => ({
       content: lang === 'fr'
-        ? ['Resultat mesurable']
-        : ['Measurable result'],
-      value: lang === 'fr' ? '3x' : '3x',
-      description: lang === 'fr' ? 'amelioration des performances' : 'performance improvement',
+        ? ['Resultat mesure apres adoption']
+        : ['Measured result after adoption'],
+      value: '-60%',
+      description: lang === 'fr' ? 'de temps de correction des bugs grace a l\'isolation des couches' : 'bug fix time reduction thanks to layer isolation',
     }),
   },
 
   workshop: {
     intro: (lang) => ({
       content: lang === 'fr'
-        ? ['- Objectifs du workshop', '- Duree estimee : 2h', '- Format : theorie + pratique']
-        : ['- Workshop objectives', '- Estimated duration: 2h', '- Format: theory + hands-on'],
+        ? ['- Construire un pipeline CI/CD complet de zero', '- Duree : 2h - theorie + exercices pratiques', '- Deployer une application conteneurisee sur un cluster']
+        : ['- Build a complete CI/CD pipeline from scratch', '- Duration: 2h - theory + hands-on exercises', '- Deploy a containerized application to a cluster'],
     }),
     prerequis: (lang) => ({
       content: lang === 'fr'
@@ -97,24 +99,24 @@ export const PRESET_CONTENT_REGISTRY: Record<string, PresetContentMap> = {
     }),
     module: (lang) => ({
       content: lang === 'fr'
-        ? ['- Concepts theoriques cles', '- Schema d\'architecture', '- Points d\'attention et pieges courants']
-        : ['- Key theoretical concepts', '- Architecture overview', '- Pitfalls and common mistakes'],
+        ? ['- Dockerfile multi-stage et optimisation des layers', '- Pipeline CI avec GitHub Actions : lint, test, build', '- Deploiement continu avec rollback automatique']
+        : ['- Multi-stage Dockerfile and layer optimization', '- CI pipeline with GitHub Actions: lint, test, build', '- Continuous deployment with automatic rollback'],
     }),
     exercise: (lang) => ({
       content: lang === 'fr'
         ? ['Implementez la fonctionnalite suivante :']
         : ['Implement the following feature:'],
       code: lang === 'fr'
-        ? '// TODO: Implementer la fonction\nexport function transform(input: string): string {\n  // Votre code ici\n  return input;\n}'
-        : '// TODO: Implement the function\nexport function transform(input: string): string {\n  // Your code here\n  return input;\n}',
+        ? '// Exercice : API REST avec validation Zod\nimport { z } from "zod";\nconst UserSchema = z.object({\n  name: z.string().min(2),\n  email: z.string().email(),\n  role: z.enum(["admin", "user"]),\n});\n// POST /api/users - Creer un utilisateur\nrouter.post("/api/users", async (req, res) => {\n  const result = UserSchema.safeParse(req.body);\n  if (!result.success)\n    return res.status(400).json(result.error.flatten());\n  const user = await db.users.create(result.data);\n  res.status(201).json(user);\n});'
+        : '// Exercise: REST API with Zod validation\nimport { z } from "zod";\nconst UserSchema = z.object({\n  name: z.string().min(2),\n  email: z.string().email(),\n  role: z.enum(["admin", "user"]),\n});\n// POST /api/users - Create a user\nrouter.post("/api/users", async (req, res) => {\n  const result = UserSchema.safeParse(req.body);\n  if (!result.success)\n    return res.status(400).json(result.error.flatten());\n  const user = await db.users.create(result.data);\n  res.status(201).json(user);\n});',
     }),
     recap: (lang) => ({
       content: lang === 'fr'
         ? ['Points cles a retenir :']
         : ['Key takeaways:'],
       items: lang === 'fr'
-        ? ['Concept 1 : separation des responsabilites', 'Concept 2 : tests avant le code', 'Concept 3 : refactoring continu']
-        : ['Concept 1: separation of concerns', 'Concept 2: test before code', 'Concept 3: continuous refactoring'],
+        ? ['Conteneuriser avec des images Docker optimisees (< 100 Mo)', 'Automatiser les tests et le build dans le pipeline CI', 'Deployer en staging avant la production avec validation automatique']
+        : ['Containerize with optimized Docker images (< 100 MB)', 'Automate tests and build in the CI pipeline', 'Deploy to staging before production with automatic validation'],
     }),
     resources: (lang) => ({
       content: lang === 'fr'
@@ -126,14 +128,16 @@ export const PRESET_CONTENT_REGISTRY: Record<string, PresetContentMap> = {
         ? ['Verification des acquis :']
         : ['Knowledge check:'],
       items: lang === 'fr'
-        ? ['Comprendre le concept principal', 'Savoir l\'appliquer en pratique', 'Identifier les cas limites']
-        : ['Understand the main concept', 'Know how to apply it in practice', 'Identify edge cases'],
+        ? ['Construire une image Docker multi-stage fonctionnelle', 'Configurer un workflow GitHub Actions avec cache des dependances', 'Declencher un deploiement automatique sur push vers main']
+        : ['Build a working multi-stage Docker image', 'Configure a GitHub Actions workflow with dependency caching', 'Trigger an automatic deployment on push to main'],
     }),
     diagram: (lang) => ({
       content: lang === 'fr'
         ? ['Architecture du module :']
         : ['Module architecture:'],
-      diagram: 'flowchart TD',
+      diagram: lang === 'fr'
+        ? 'flowchart TD\n  Dev[Developpeur] --> Commit[Git Commit]\n  Commit --> CI[Pipeline CI]\n  CI --> Test[Tests Automatises]\n  CI --> Lint[Analyse de Code]\n  Test --> Build[Build Docker]\n  Lint --> Build\n  Build --> Deploy[Deploiement Staging]\n  Deploy --> Prod[Production]'
+        : 'flowchart TD\n  Dev[Developer] --> Commit[Git Commit]\n  Commit --> CI[CI Pipeline]\n  CI --> Test[Automated Tests]\n  CI --> Lint[Code Analysis]\n  Test --> Build[Docker Build]\n  Lint --> Build\n  Build --> Deploy[Staging Deploy]\n  Deploy --> Prod[Production]',
     }),
   },
 
@@ -145,21 +149,21 @@ export const PRESET_CONTENT_REGISTRY: Record<string, PresetContentMap> = {
     }),
     problem: (lang) => ({
       content: lang === 'fr'
-        ? ['- Le probleme que nous resolvons', '- Impact sur les equipes de dev', '- Cout du statu quo']
-        : ['- The problem we are solving', '- Impact on dev teams', '- Cost of the status quo'],
+        ? ['- Les appels API sequentiels bloquent l\'interface utilisateur', '- Temps de reponse moyen > 3 secondes par page', '- Taux d\'abandon de 40% quand le chargement depasse 2s']
+        : ['- Sequential API calls block the user interface', '- Average response time > 3 seconds per page', '- 40% bounce rate when loading exceeds 2s'],
     }),
     solution: (lang) => ({
       content: lang === 'fr'
-        ? ['- Notre approche en une phrase', '- Avantage cle par rapport aux alternatives', '- Preuve de concept validee']
-        : ['- Our approach in one sentence', '- Key advantage over alternatives', '- Validated proof of concept'],
+        ? ['- Requetes paralleles avec Promise.all et batching', '- Reduction de 10x du temps de chargement', '- Pattern reutilisable en 20 lignes de code']
+        : ['- Parallel requests with Promise.all and batching', '- 10x reduction in loading time', '- Reusable pattern in 20 lines of code'],
     }),
     demo: (lang) => ({
       content: lang === 'fr'
         ? ['Voici comment ca fonctionne :']
         : ['Here is how it works:'],
       code: lang === 'fr'
-        ? '// Avant\nconst result = oldWay(data); // lent, fragile\n\n// Apres\nconst result = newWay(data); // 10x plus rapide'
-        : '// Before\nconst result = oldWay(data); // slow, fragile\n\n// After\nconst result = newWay(data); // 10x faster',
+        ? '// Avant : requetes sequentielles (lent)\nasync function fetchAll(ids: string[]) {\n  const results = [];\n  for (const id of ids) {\n    results.push(await fetch(`/api/${id}`).then(r => r.json()));\n  }\n  return results; // ~3s pour 10 items\n}\n\n// Apres : requetes paralleles (10x plus rapide)\nasync function fetchAllFast(ids: string[]) {\n  const promises = ids.map(id =>\n    fetch(`/api/${id}`).then(r => r.json())\n  );\n  return Promise.all(promises); // ~0.3s pour 10 items\n}'
+        : '// Before: sequential requests (slow)\nasync function fetchAll(ids: string[]) {\n  const results = [];\n  for (const id of ids) {\n    results.push(await fetch(`/api/${id}`).then(r => r.json()));\n  }\n  return results; // ~3s for 10 items\n}\n\n// After: parallel requests (10x faster)\nasync function fetchAllFast(ids: string[]) {\n  const promises = ids.map(id =>\n    fetch(`/api/${id}`).then(r => r.json())\n  );\n  return Promise.all(promises); // ~0.3s for 10 items\n}',
     }),
     cta: (lang) => ({
       content: lang === 'fr'
@@ -183,13 +187,13 @@ export const PRESET_CONTENT_REGISTRY: Record<string, PresetContentMap> = {
     }),
     problem: (lang) => ({
       content: lang === 'fr'
-        ? ['- Douleur identifiee sur le marche', '- Qui est touche et pourquoi', '- Ampleur du probleme']
-        : ['- Identified market pain', '- Who is affected and why', '- Scale of the problem'],
+        ? ['- 72% des equipes perdent plus de 10h/semaine sur les incidents de production', '- Les outils de monitoring actuels generent trop d\'alertes non pertinentes', '- Cout moyen d\'une panne : 5 600 $/minute (Gartner 2024)']
+        : ['- 72% of teams lose 10+ hours/week on production incidents', '- Current monitoring tools generate too many irrelevant alerts', '- Average cost of downtime: $5,600/minute (Gartner 2024)'],
     }),
     solution: (lang) => ({
       content: lang === 'fr'
-        ? ['- Notre solution en une phrase', '- Proposition de valeur unique', '- Comment ca marche (en 3 etapes)']
-        : ['- Our solution in one sentence', '- Unique value proposition', '- How it works (in 3 steps)'],
+        ? ['- Plateforme d\'observabilite alimentee par l\'IA pour le triage automatique', '- Correlation intelligente des alertes : -85% de bruit', '- De l\'incident a la resolution en 3 clics au lieu de 30 minutes']
+        : ['- AI-powered observability platform for automatic triage', '- Intelligent alert correlation: -85% noise reduction', '- From incident to resolution in 3 clicks instead of 30 minutes'],
     }),
     market: (lang) => ({
       content: lang === 'fr'
@@ -200,8 +204,8 @@ export const PRESET_CONTENT_REGISTRY: Record<string, PresetContentMap> = {
     }),
     product: (lang) => ({
       content: lang === 'fr'
-        ? ['- Fonctionnalite cle 1 : gain de temps', '- Fonctionnalite cle 2 : fiabilite', '- Fonctionnalite cle 3 : integration facile']
-        : ['- Key feature 1: time savings', '- Key feature 2: reliability', '- Key feature 3: easy integration'],
+        ? ['- Detection d\'anomalies en temps reel avec auto-remediation', '- Intégration native avec Kubernetes, AWS, GCP et Datadog', '- Dashboard unifie avec SLA tracking et rapports d\'incidents']
+        : ['- Real-time anomaly detection with auto-remediation', '- Native integration with Kubernetes, AWS, GCP and Datadog', '- Unified dashboard with SLA tracking and incident reports'],
     }),
     business: (lang) => ({
       content: lang === 'fr'
@@ -224,8 +228,8 @@ export const PRESET_CONTENT_REGISTRY: Record<string, PresetContentMap> = {
       content: lang === 'fr'
         ? ['Traction actuelle']
         : ['Current traction'],
-      value: lang === 'fr' ? '+200%' : '+200%',
-      description: lang === 'fr' ? 'croissance MoM' : 'MoM growth',
+      value: '+200%',
+      description: lang === 'fr' ? 'de croissance mensuelle du nombre d\'utilisateurs actifs' : 'monthly growth in active users since launch',
     }),
     thanks: (lang) => ({
       content: lang === 'fr'
@@ -247,15 +251,15 @@ export const PRESET_CONTENT_REGISTRY: Record<string, PresetContentMap> = {
     }),
     context: (lang) => ({
       content: lang === 'fr'
-        ? ['- Etat des lieux du secteur', '- Les defis actuels', '- Pourquoi le changement est necessaire']
-        : ['- Current state of the industry', '- Today\'s challenges', '- Why change is necessary'],
+        ? ['- 85% des entreprises migrent vers le cloud d\'ici 2026', '- Le monolithe ne scale plus : latence, equipes bloquees, deploys risques', '- L\'architecture microservices comme reponse a la complexite croissante']
+        : ['- 85% of companies migrating to cloud by 2026', '- Monoliths no longer scale: latency, blocked teams, risky deploys', '- Microservices architecture as the answer to growing complexity'],
     }),
     impact: (lang) => ({
       content: lang === 'fr'
-        ? ['Un chiffre qui parle']
-        : ['A number that speaks'],
-      value: lang === 'fr' ? '73%' : '73%',
-      description: lang === 'fr' ? 'des equipes font face a ce defi' : 'of teams face this challenge',
+        ? ['Le cout reel du monolithe']
+        : ['The real cost of the monolith'],
+      value: '73%',
+      description: lang === 'fr' ? 'des deployments echouent a cause du couplage fort entre les modules' : 'of deployments fail due to tight coupling between modules',
     }),
     illustration: (lang) => ({
       content: lang === 'fr'
@@ -264,37 +268,39 @@ export const PRESET_CONTENT_REGISTRY: Record<string, PresetContentMap> = {
     }),
     steps: (lang) => ({
       content: lang === 'fr'
-        ? ['Les etapes du parcours :']
-        : ['The journey steps:'],
+        ? ['La migration vers les microservices en 5 etapes :']
+        : ['The migration to microservices in 5 steps:'],
       items: lang === 'fr'
-        ? ['Identifier le probleme', 'Explorer les solutions', 'Prototyper rapidement', 'Valider avec les utilisateurs', 'Deployer a grande echelle']
-        : ['Identify the problem', 'Explore solutions', 'Prototype quickly', 'Validate with users', 'Deploy at scale'],
+        ? ['Cartographier les domaines metier avec le Domain-Driven Design', 'Extraire le premier service autonome (Strangler Fig Pattern)', 'Mettre en place l\'API Gateway et le service mesh', 'Implementer l\'observabilite distribuee (traces, logs, metriques)', 'Automatiser le deploiement avec GitOps et Kubernetes']
+        : ['Map business domains with Domain-Driven Design', 'Extract the first autonomous service (Strangler Fig Pattern)', 'Set up API Gateway and service mesh', 'Implement distributed observability (traces, logs, metrics)', 'Automate deployment with GitOps and Kubernetes'],
     }),
     demo: (lang) => ({
       content: lang === 'fr'
         ? ['La solution en action :']
         : ['The solution in action:'],
       code: lang === 'fr'
-        ? '// La solution elegante\nconst result = await solve({\n  approach: "innovative",\n  scale: "global"\n});\nconsole.log(result); // Succes!'
-        : '// The elegant solution\nconst result = await solve({\n  approach: "innovative",\n  scale: "global"\n});\nconsole.log(result); // Success!',
+        ? '// Pipeline de deploiement automatise\nclass DeployPipeline {\n  private stages: Stage[] = [];\n  addStage(name: string, fn: RunFn) {\n    this.stages.push({ name, fn });\n    return this;\n  }\n  async execute(env: string) {\n    for (const s of this.stages) {\n      console.log(`[${env}] ${s.name}...`);\n      await s.fn(env);\n    }\n  }\n}\nconst pipeline = new DeployPipeline()\n  .addStage("Tests", runTests)\n  .addStage("Build", buildImage)\n  .addStage("Deploy", deployK8s);'
+        : '// Automated deployment pipeline\nclass DeployPipeline {\n  private stages: Stage[] = [];\n  addStage(name: string, fn: RunFn) {\n    this.stages.push({ name, fn });\n    return this;\n  }\n  async execute(env: string) {\n    for (const s of this.stages) {\n      console.log(`[${env}] ${s.name}...`);\n      await s.fn(env);\n    }\n  }\n}\nconst pipeline = new DeployPipeline()\n  .addStage("Tests", runTests)\n  .addStage("Build", buildImage)\n  .addStage("Deploy", deployK8s);',
     }),
     architecture: (lang) => ({
       content: lang === 'fr'
         ? ['Architecture de la solution :']
         : ['Solution architecture:'],
-      diagram: 'flowchart LR',
+      diagram: lang === 'fr'
+        ? 'flowchart LR\n  Gateway[API Gateway] --> UserSvc[Service Utilisateurs]\n  Gateway --> OrderSvc[Service Commandes]\n  Gateway --> NotifSvc[Service Notifications]\n  UserSvc --> DB1[(Base Users)]\n  OrderSvc --> DB2[(Base Commandes)]\n  OrderSvc --> Queue[File de Messages]\n  Queue --> NotifSvc'
+        : 'flowchart LR\n  Gateway[API Gateway] --> UserSvc[Users Service]\n  Gateway --> OrderSvc[Orders Service]\n  Gateway --> NotifSvc[Notifications Service]\n  UserSvc --> DB1[(Users DB)]\n  OrderSvc --> DB2[(Orders DB)]\n  OrderSvc --> Queue[Message Queue]\n  Queue --> NotifSvc',
     }),
     comparison: (lang) => ({
       content: lang === 'fr'
-        ? ['**Avant** : processus lent et fragile', '', '**Apres** : rapide et fiable']
-        : ['**Before**: slow and fragile process', '', '**After**: fast and reliable'],
+        ? ['**Avant** : monolithe, 1 deploy/mois, rollback en 4h', '', '**Apres** : microservices, 50 deploys/jour, rollback en 30s']
+        : ['**Before**: monolith, 1 deploy/month, 4h rollback', '', '**After**: microservices, 50 deploys/day, 30s rollback'],
     }),
     result: (lang) => ({
       content: lang === 'fr'
-        ? ['Resultat mesurable']
-        : ['Measurable result'],
-      value: lang === 'fr' ? '10x' : '10x',
-      description: lang === 'fr' ? 'amelioration de la productivite' : 'productivity improvement',
+        ? ['Resultat apres 12 mois de migration']
+        : ['Result after 12 months of migration'],
+      value: '50x',
+      description: lang === 'fr' ? 'plus de deployments par mois avec zero downtime' : 'more deployments per month with zero downtime',
     }),
     cta: (lang) => ({
       content: lang === 'fr'

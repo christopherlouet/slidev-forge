@@ -9,7 +9,7 @@ const ALLOWED_CONFIG_KEYS = new Set([
   'slidev_theme', 'visual_theme', 'transition', 'language', 'sections',
   'deploy', 'export', 'options', 'fonts', 'line_numbers', 'aspect_ratio',
   'color_schema', 'addons', 'favicon', 'download', 'preset', 'logo',
-  'social', 'footer', 'slide_numbers', 'colors', 'multi_file',
+  'social', 'footer', 'slide_numbers', 'colors', 'multi_file', 'conference',
 ]);
 
 export async function runConfig(args: string[]): Promise<void> {

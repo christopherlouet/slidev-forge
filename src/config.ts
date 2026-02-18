@@ -5,6 +5,7 @@ import { THEMES, DEFAULT_THEME, TRANSITIONS, DEFAULT_TRANSITION, buildCustomThem
 import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, t } from './i18n.js';
 import type { Section, UserConfig, ResolvedConfig, ExportConfig, OptionsConfig } from './types.js';
 import { getPresetContent } from './preset-content.js';
+import { getConference } from './conferences.js';
 
 const VALID_COLOR_SCHEMAS = ['light', 'dark', 'auto'] as const;
 const ASPECT_RATIO_REGEX = /^\d+\/\d+$/;
@@ -29,6 +30,8 @@ function enrichSection(preset: string, key: string, section: Section, lang: stri
     ...(pc.items ? { items: pc.items } : {}),
     ...(pc.value ? { value: pc.value } : {}),
     ...(pc.description ? { description: pc.description } : {}),
+    ...(pc.code ? { code: pc.code } : {}),
+    ...(pc.diagram ? { diagram: pc.diagram } : {}),
   };
 }
 
@@ -288,12 +291,31 @@ export function mergeDefaults(userConfig: UserConfig): ResolvedConfig {
     if (typeof config.logo !== 'string') {
       console.warn(`Invalid logo, ignoring`);
       delete config.logo;
-    } else {
+    } else if (!config.logo.startsWith('https://')) {
       try {
         sanitizeCssUrlPath(config.logo);
       } catch {
         console.warn(`Invalid logo path "${config.logo}", ignoring`);
         delete config.logo;
+      }
+    }
+  }
+
+  // Validate and enrich conference
+  if (config.conference !== undefined) {
+    if (typeof config.conference !== 'string' || config.conference.trim() === '') {
+      delete config.conference;
+    } else {
+      const conf = getConference(config.conference);
+      if (conf) {
+        if (!config.event_name) {
+          config.event_name = conf.name;
+        }
+        if (!config.logo) {
+          config.logo = conf.logo;
+        }
+      } else {
+        console.warn(`Unknown conference "${config.conference}", ignoring`);
       }
     }
   }

@@ -25,6 +25,10 @@ export function generateSlides(config: ResolvedConfig): string {
 
 function generateFrontmatter(config: ResolvedConfig): string {
   const lang = config.language;
+  const theme = getTheme(config.visual_theme);
+  const transition = config.transition === 'slide-left' && theme.defaultTransition
+    ? theme.defaultTransition
+    : config.transition;
   const lines: string[] = [
     '---',
     `theme: ${config.slidev_theme}`,
@@ -35,7 +39,7 @@ function generateFrontmatter(config: ResolvedConfig): string {
     `class: text-center`,
     'drawings:',
     '  persist: false',
-    `transition: ${config.transition}`,
+    `transition: ${transition}`,
     'mdc: true',
   ];
 
@@ -68,10 +72,17 @@ function generateFrontmatter(config: ResolvedConfig): string {
   }
 
   // fonts block
-  if (config.fonts && typeof config.fonts === 'object') {
+  const hasUserFonts = config.fonts && typeof config.fonts === 'object' && Object.keys(config.fonts).length > 0;
+  const hasThemeFont = !!theme.font;
+  if (hasUserFonts || hasThemeFont) {
     lines.push('fonts:');
-    for (const [key, value] of Object.entries(config.fonts)) {
-      lines.push(`  ${key}: '${sanitizeYamlScalar(String(value))}'`);
+    if (hasUserFonts) {
+      for (const [key, value] of Object.entries(config.fonts!)) {
+        lines.push(`  ${key}: '${sanitizeYamlScalar(String(value))}'`);
+      }
+    }
+    if (hasThemeFont && !(config.fonts && config.fonts['mono'])) {
+      lines.push(`  mono: '${theme.font}'`);
     }
   }
 

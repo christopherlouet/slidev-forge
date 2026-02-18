@@ -8,6 +8,7 @@ import { loadConfig, mergeDefaults, validateConfig } from './config.js';
 import { generate } from './generator.js';
 import { writeFile } from './writer.js';
 import { THEMES, DEFAULT_THEME } from './themes.js';
+import { listConferences } from './conferences.js';
 import { slugify, expandHome } from './utils.js';
 import { loadGlobalConfig, mergeGlobalConfig } from './global-config.js';
 import type { ParsedArgs, UserConfig, ResolvedConfig } from './types.js';
@@ -68,6 +69,7 @@ interface InteractiveAnswers {
   subtitle: string;
   event_name: string;
   github: string;
+  conference?: string;
   sections: string;
 }
 
@@ -97,6 +99,9 @@ export function buildConfigFromArgs(answers: InteractiveAnswers): UserConfig {
   }
   if (answers.github && answers.github.trim()) {
     config.github = answers.github.trim();
+  }
+  if (answers.conference && answers.conference.trim()) {
+    config.conference = answers.conference.trim();
   }
 
   return config;
@@ -201,6 +206,19 @@ export async function promptInteractive(): Promise<InteractiveAnswers> {
     default: '',
   });
 
+  const conferenceChoices = [
+    { name: 'Aucune', value: '' },
+    ...listConferences().map((c) => ({
+      name: `${c.emoji}  ${pc.bold(c.name)} - ${c.description}`,
+      value: c.id,
+    })),
+  ];
+  const conference = await select({
+    message: 'Conference:',
+    choices: conferenceChoices,
+    default: '',
+  });
+
   let sections = '';
   if (preset === 'none') {
     sections = await input({
@@ -209,7 +227,7 @@ export async function promptInteractive(): Promise<InteractiveAnswers> {
     });
   }
 
-  return { title, author, visual_theme, preset, dest_dir, subtitle, event_name, github, sections };
+  return { title, author, visual_theme, preset, dest_dir, subtitle, event_name, github, conference, sections };
 }
 
 export async function run(args: string[]): Promise<void> {
