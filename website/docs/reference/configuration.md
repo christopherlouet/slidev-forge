@@ -16,6 +16,7 @@ Essential fields required for every presentation.
 | `author` | Yes | - | Author name |
 | `subtitle` | No | - | Subtitle shown on title slide |
 | `event_name` | No | - | Event name displayed above the title |
+| `conference` | No | - | Conference from built-in registry (auto-sets event_name, logo) |
 | `language` | No | `fr` | Presentation language (`fr`, `en`) |
 
 ### Example
@@ -26,7 +27,22 @@ subtitle: "From HTML to modern frameworks"
 author: "Jane Doe"
 event_name: "Tech Meetup"
 language: en
+
+# Or use the conference registry (auto-fills event_name and logo)
+conference: breizhcamp
 ```
+
+### Conference Registry
+
+Instead of manually setting `event_name` and `logo`, use the `conference` field to select from 10 built-in French tech conferences:
+
+```yaml
+conference: breizhcamp   # Auto-sets event_name: "BreizhCamp", logo: breizhcamp.svg
+```
+
+Available conferences: `breizhcamp`, `devoxx-fr`, `bdx-io`, `alpescraft`, `mixit`, `volcamp`, `sunny-tech`, `devfest-nantes`, `riviera-dev`, `snowcamp`.
+
+The conference logo SVG is automatically copied to `public/` during generation and displayed on slides. Use `slidev-forge conference list` to see all options.
 
 ## Theming Options
 
@@ -194,7 +210,7 @@ options:
 title: "Introduction to Web Development"
 subtitle: "From HTML to modern frameworks"
 author: "Jane Doe"
-event_name: "Tech Meetup"
+conference: devoxx-fr
 language: en
 
 # Theming

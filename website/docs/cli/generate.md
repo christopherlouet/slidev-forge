@@ -32,6 +32,7 @@ You'll be asked for:
 - **Subtitle** (optional): Subtitle for the title slide
 - **Event name** (optional): Event displayed above the title
 - **GitHub** (optional): GitHub username for links
+- **Conference** (optional): Select from 10 French tech conferences (with emoji icons)
 - **Sections** (if preset is "none"): Comma-separated section names
 
 The tool will create a `presentation.yaml` file in the generated project to preserve your configuration.
@@ -128,3 +129,4 @@ my-talk/
 
 - [validate](./validate.md) - Validate a YAML configuration
 - [regenerate](./regenerate.md) - Sync slides with updated YAML
+- [conference](./conference.md) - List, show, and set conference associations

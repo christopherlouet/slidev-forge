@@ -32,6 +32,7 @@ const sidebars: SidebarsConfig = {
         'cli/theme',
         'cli/config',
         'cli/regenerate',
+        'cli/conference',
       ],
     },
     {

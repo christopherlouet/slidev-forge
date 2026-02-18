@@ -23,7 +23,7 @@ visual_theme: cyberpunk
 
 ### matrix
 
-Terminal green on black - perfect for developer and hacking-themed presentations.
+Terminal green on black with glow effects, scanline aesthetics, and monospace typography - perfect for developer and hacking-themed presentations. Enhanced CSS includes text glow on headings, code block borders with accent colors, and a retro terminal feel.
 
 - **Primary:** `#00FF41` (Matrix Green)
 - **Secondary:** `#00D9FF` (Cyan)
@@ -163,7 +163,7 @@ colors:
 | Theme | Best For | Mood |
 |-------|----------|------|
 | cyberpunk | Tech talks, futuristic topics | Bold, energetic |
-| matrix | Developer talks, coding workshops | Retro, technical |
+| matrix | Developer talks, coding workshops | Retro, terminal, glow effects |
 | dracula | Evening presentations, creative talks | Elegant, high contrast |
 | catppuccin | Long workshops, tutorials | Comfortable, easy on eyes |
 | nord | Professional presentations, business talks | Clean, minimalist |

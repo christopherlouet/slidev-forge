@@ -31,7 +31,7 @@ event_name: "Tech Meetup"
 
 - **`subtitle`**: Appears below the title on the title slide
 - **`github`**: Your GitHub username, adds a clickable link on the title slide
-- **`event_name`**: Displays above the title (e.g., conference name)
+- **`event_name`**: Displays above the title (e.g., conference name). Or use `conference:` to auto-populate from the built-in registry.
 
 The `project_name` field (defaults to slugified title) controls the generated folder name and npm package name:
 
@@ -101,6 +101,43 @@ footer: "My Company"      # Footer text on all slides
 logo: /logo.png           # Logo image path
 favicon: /favicon.ico     # Browser favicon
 ```
+
+## Conference Registry
+
+Target a specific conference to auto-populate event name, logo, and branding:
+
+```yaml
+conference: breizhcamp
+```
+
+This automatically sets `event_name` to "BreizhCamp" and copies the official SVG logo to your project's `public/` directory.
+
+Available conferences:
+
+| ID | Conference | City |
+|----|-----------|------|
+| `breizhcamp` | 🌊 BreizhCamp | Rennes |
+| `devoxx-fr` | 🗼 Devoxx France | Paris |
+| `bdx-io` | 🏰 BDX I/O | Bordeaux |
+| `alpescraft` | ⛰️ AlpesCraft | Grenoble |
+| `mixit` | 🎨 MiXiT | Lyon |
+| `volcamp` | 🌋 Volcamp | Clermont-Ferrand |
+| `sunny-tech` | ☀️ Sunny Tech | Montpellier |
+| `devfest-nantes` | 🎯 DevFest Nantes | Nantes |
+| `riviera-dev` | 🌴 Riviera DEV | Sophia-Antipolis |
+| `snowcamp` | ❄️ SnowCamp | Grenoble |
+
+Combine with a preset for a complete conference setup:
+
+```yaml
+title: "Clean Architecture in Practice"
+author: "Jane Doe"
+conference: devoxx-fr
+preset: conference
+visual_theme: matrix
+```
+
+Use `slidev-forge conference list` to see all available conferences.
 
 ## Structure
 

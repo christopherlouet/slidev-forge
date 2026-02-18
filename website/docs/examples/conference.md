@@ -4,29 +4,71 @@ sidebar_position: 1
 
 # Conference Talk
 
-A complete example of a 30-45 minute conference talk about building scalable APIs. This configuration showcases varied section types, professional styling, and deployment setup.
+A complete example of a 30-45 minute conference talk about building scalable APIs. This configuration showcases the conference registry, varied section types, professional styling, and deployment setup.
 
 ## Use Case
 
 Perfect for:
-- Technical conference presentations
+- Technical conference presentations at French tech events
 - User group meetups
 - Internal tech talks
 - Developer workshops with demo components
 
 ## Configuration
 
+### With Conference Registry
+
+Use the `conference` field to automatically set event name, logo, and branding:
+
 ```yaml
 title: "Building Scalable APIs"
 subtitle: "From monolith to microservices"
 author: "Alex Chen"
 github: "alexchen"
-event_name: "DevConf 2026"
+conference: devoxx-fr
 
 slidev_theme: seriph
 visual_theme: dracula
 transition: fade
 language: en
+preset: conference
+
+deploy:
+  - github-pages
+
+export:
+  format: pdf
+  dark: false
+  with_clicks: false
+
+options:
+  snippets: true
+  components: true
+
+line_numbers: true
+slide_numbers: true
+download: true
+
+social:
+  twitter: alexchen
+  github: alexchen
+  website: https://alexchen.dev
+```
+
+Setting `conference: devoxx-fr` automatically:
+- Sets `event_name` to "Devoxx France"
+- Copies the official Devoxx France SVG logo to `public/`
+- Displays the logo on every slide
+
+### With Custom Sections
+
+For full control over sections, add explicit section definitions:
+
+```yaml
+title: "Building Scalable APIs"
+author: "Alex Chen"
+conference: breizhcamp
+visual_theme: matrix
 
 sections:
   - name: Introduction
@@ -67,29 +109,29 @@ sections:
     type: qna
   - name: Thanks
     type: thanks
+```
 
-deploy:
-  - github-pages
+## Available Conferences
 
-export:
-  format: pdf
-  dark: false
-  with_clicks: false
+| ID | Conference | Emoji | City | Month |
+|----|-----------|-------|------|-------|
+| `breizhcamp` | BreizhCamp | 🌊 | Rennes | June |
+| `devoxx-fr` | Devoxx France | 🗼 | Paris | April |
+| `bdx-io` | BDX I/O | 🏰 | Bordeaux | November |
+| `alpescraft` | AlpesCraft | ⛰️ | Grenoble | June |
+| `mixit` | MiXiT | 🎨 | Lyon | April |
+| `volcamp` | Volcamp | 🌋 | Clermont-Ferrand | October |
+| `sunny-tech` | Sunny Tech | ☀️ | Montpellier | June |
+| `devfest-nantes` | DevFest Nantes | 🎯 | Nantes | October |
+| `riviera-dev` | Riviera DEV | 🌴 | Sophia-Antipolis | July |
+| `snowcamp` | SnowCamp | ❄️ | Grenoble | January |
 
-options:
-  snippets: true
-  components: true
+```bash
+# List all conferences
+slidev-forge conference list
 
-line_numbers: true
-slide_numbers: true
-download: true
-
-social:
-  twitter: alexchen
-  github: alexchen
-  website: https://alexchen.dev
-
-footer: "DevConf 2026 | Building Scalable APIs"
+# Show details for a specific conference
+slidev-forge conference show breizhcamp
 ```
 
 ## What You Get
@@ -98,6 +140,7 @@ After running `npx slidev-forge presentation.yaml`, you'll have:
 
 - **14 slides** organized in `pages/` directory (one file per section)
 - **Professional dark theme** (Dracula) with purple/pink accents
+- **Conference logo** automatically embedded from the registry
 - **Custom layouts** for two-column content, diagrams, and code examples
 - **GitHub Pages deployment** configured with `.github/workflows/deploy.yml`
 - **PDF export** setup with `npm run export`
@@ -128,7 +171,9 @@ building-scalable-apis/
 │   ├── two-cols-header.vue
 │   ├── image-right.vue
 │   └── quote.vue
-├── styles/index.css              # Dracula color scheme
+├── public/
+│   └── devoxx-fr.svg             # Conference logo (auto-copied)
+├── styles/index.css              # Dracula color scheme + logo display
 ├── package.json
 ├── presentation.yaml
 └── slides.md
@@ -136,11 +181,17 @@ building-scalable-apis/
 
 ## Customize It
 
-**Change the topic**: Replace section names and code examples with your own content.
-
-**Different theme**: Try `tokyo-night` or `nord` for a different look:
+**Change the conference**: Switch to any supported conference:
 ```yaml
-visual_theme: tokyo-night
+conference: snowcamp       # ❄️ SnowCamp - Grenoble
+conference: sunny-tech     # ☀️ Sunny Tech - Montpellier
+conference: breizhcamp     # 🌊 BreizhCamp - Rennes
+```
+
+**Different theme**: Try `matrix` for a hacker vibe or `nord` for a clean look:
+```yaml
+visual_theme: matrix       # Terminal green with glow effects
+visual_theme: nord         # Arctic blues, professional
 ```
 
 **Add more diagrams**: Use Mermaid types like `classDiagram`, `gantt`, or `erDiagram`:

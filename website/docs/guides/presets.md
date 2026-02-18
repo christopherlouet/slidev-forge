@@ -202,6 +202,22 @@ sections:
 | A pitch to investors | `pitch` | 10-15 min |
 | Something else | Omit `preset`, define custom `sections` | Any |
 
+## Combining with Conference Registry
+
+The `conference` field and `preset: conference` are complementary:
+- **`preset: conference`** defines the section structure (Introduction, About, Topics, Demo, Q&A, Thanks)
+- **`conference: devoxx-fr`** sets metadata and branding (event name, logo SVG)
+
+```yaml
+title: "Clean Architecture in Practice"
+author: "Jane Doe"
+preset: conference         # Section structure
+conference: breizhcamp     # Branding: name + logo
+visual_theme: matrix       # Visual theme
+```
+
+This gives you a fully branded conference presentation with the BreizhCamp logo on every slide.
+
 ## No Preset
 
 If none of the presets fit, simply omit the `preset` field and define sections manually:

@@ -1,7 +1,7 @@
 # slidev-forge
 
 [![CI](https://github.com/christopherlouet/slidev-forge/actions/workflows/ci.yml/badge.svg)](https://github.com/christopherlouet/slidev-forge/actions/workflows/ci.yml)
-[![version](https://img.shields.io/badge/version-2.1.0-blue)](https://github.com/christopherlouet/slidev-forge/releases/tag/v2.1.0)
+[![version](https://img.shields.io/badge/version-3.2.0-blue)](https://github.com/christopherlouet/slidev-forge/releases/tag/v3.2.0)
 [![license](https://img.shields.io/github/license/christopherlouet/slidev-forge)](LICENSE)
 [![node](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](package.json)
 
@@ -24,6 +24,25 @@ npx slidev-forge presentation.yaml
 ```yaml
 title: My Awesome Talk
 author: Jane Doe
+```
+
+### Conference mode
+
+Target a specific French tech conference with automatic branding:
+
+```yaml
+title: Clean Architecture in Practice
+author: Jane Doe
+conference: breizhcamp
+preset: conference
+```
+
+The `conference` field auto-sets the event name, logo (SVG), and visual identity. 10 conferences supported:
+
+🌊 BreizhCamp · 🗼 Devoxx France · 🏰 BDX I/O · ⛰️ AlpesCraft · 🎨 MiXiT · 🌋 Volcamp · ☀️ Sunny Tech · 🎯 DevFest Nantes · 🌴 Riviera DEV · ❄️ SnowCamp
+
+```bash
+npx slidev-forge conference list  # List all available conferences
 ```
 
 ## Documentation
