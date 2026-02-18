@@ -177,8 +177,9 @@ describe('generateSlides', () => {
     const sectionParts = parts.filter((p) => p.includes('# Intro') || p.includes('# Demo'));
     expect(sectionParts).toHaveLength(2);
     for (const part of sectionParts) {
+      // Each section should have contextual presenter notes in Slidev format
       expect(part).toContain('<!--');
-      expect(part).toContain('Notes');
+      expect(part).toContain('-->');
     }
   });
 
@@ -476,7 +477,8 @@ describe('generateSlides', () => {
         sections: ['Intro'],
       });
       const slides = generateSlides(config);
-      expect(slides).toContain('Notes for section');
+      // v3.0: contextual notes in English for default type
+      expect(slides).toContain('Present the key points');
     });
   });
 

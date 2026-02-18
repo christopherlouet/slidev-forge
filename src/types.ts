@@ -8,6 +8,13 @@ export interface Section {
   items?: string[];
   value?: string;
   description?: string;
+  // v3.0 - Pro speaker features
+  notes?: string;
+  clicks?: boolean;
+  highlights?: string;
+  file?: string;
+  transition?: string;
+  content?: string[];
 }
 
 export interface ExportConfig {

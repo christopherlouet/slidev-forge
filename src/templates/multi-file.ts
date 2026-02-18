@@ -1,7 +1,8 @@
 import type { ResolvedConfig, Section } from '../types.js';
 import { t } from '../i18n.js';
 import { getTheme } from '../themes.js';
-import { generateSectionIds, escapeHtml, escapeHtmlAttribute, validateUrl, slugify, sanitizeYamlScalar } from '../utils.js';
+import { generateSectionIds, slugify, sanitizeYamlScalar } from '../utils.js';
+import { generateSectionContent, generateSectionNotes } from './section-content.js';
 
 interface MultiFileOutput {
   slidesMain: string;
@@ -165,148 +166,7 @@ function generateTocPage(config: ResolvedConfig): string {
 }
 
 export function generateSectionPage(section: Section, config: ResolvedConfig, id: string): string {
-  const lang = config.language;
-  const sectionType = section.type;
-  const marker = `<!-- section:id=${id} -->`;
-  const lines: string[] = ['---', `transition: ${config.transition}`];
-
-  if (sectionType === 'two-cols') {
-    lines.push('layout: two-cols');
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${section.name}`);
-    lines.push('');
-    lines.push(`<!-- ${t('comment_left_column', lang)} -->`);
-    lines.push('');
-    lines.push('::right::');
-    lines.push('');
-    lines.push(`<!-- ${t('comment_right_column', lang)} -->`);
-  } else if (sectionType === 'image-right') {
-    lines.push('layout: image-right');
-    lines.push('image: https://cover.sli.dev');
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${section.name}`);
-    lines.push('');
-    lines.push(`<!-- ${t('comment_image_content', lang)} -->`);
-  } else if (sectionType === 'quote') {
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${section.name}`);
-    lines.push('');
-    lines.push(`> ${t('comment_replace_quote', lang)}`);
-    lines.push('');
-    lines.push(`-- ${t('comment_quote_author', lang)}`);
-  } else if (sectionType === 'qna') {
-    lines.push('layout: center');
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${section.name}`);
-    lines.push('');
-    lines.push(t('comment_qna', lang));
-  } else if (sectionType === 'thanks') {
-    lines.push('layout: center');
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${section.name}`);
-    lines.push('');
-    lines.push(`${config.author}`);
-    if (config.github) {
-      lines.push('');
-      lines.push(`[github.com/${config.github}](https://github.com/${config.github})`);
-    }
-  } else if (sectionType === 'about') {
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${section.name}`);
-    lines.push('');
-    lines.push(`**${config.author}**`);
-    lines.push('');
-    lines.push(`<!-- ${t('comment_add_bio', lang)} -->`);
-  } else if (sectionType === 'code') {
-    const codeLang = section.lang || 'javascript';
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${section.name}`);
-    lines.push('');
-    lines.push(`\`\`\`${codeLang} {lines:true}`);
-    lines.push(`// ${t('comment_code_placeholder', lang)}`);
-    lines.push('```');
-  } else if (sectionType === 'diagram') {
-    const diagramType = section.diagram || 'flowchart TD';
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${section.name}`);
-    lines.push('');
-    lines.push('```mermaid');
-    lines.push(diagramType);
-    lines.push('  A[Start] --> B[End]');
-    lines.push('```');
-  } else if (sectionType === 'cover') {
-    const image = section.image || 'https://cover.sli.dev';
-    lines.push('layout: cover');
-    lines.push(`background: ${image}`);
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${section.name}`);
-  } else if (sectionType === 'iframe') {
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${section.name}`);
-    lines.push('');
-    if (section.url && validateUrl(section.url)) {
-      lines.push(`<iframe src="${escapeHtmlAttribute(section.url)}" class="w-full h-full rounded" />`);
-    } else {
-      lines.push(`<!-- ${t('comment_iframe_no_url', lang)} -->`);
-    }
-  } else if (sectionType === 'steps') {
-    const items = section.items || [
-      `${t('comment_steps_item', lang)} 1`,
-      `${t('comment_steps_item', lang)} 2`,
-      `${t('comment_steps_item', lang)} 3`,
-    ];
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${section.name}`);
-    lines.push('');
-    lines.push('<v-clicks>');
-    lines.push('');
-    for (const item of items) {
-      lines.push(`- ${item}`);
-    }
-    lines.push('');
-    lines.push('</v-clicks>');
-  } else if (sectionType === 'fact') {
-    const value = section.value || t('comment_fact_default_value', lang);
-    const description = section.description || t('comment_fact_default_desc', lang);
-    lines.push('layout: center');
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${section.name}`);
-    lines.push('');
-    lines.push(`<div class="text-8xl font-bold">${escapeHtml(value)}</div>`);
-    lines.push(`<p class="text-2xl mt-4 opacity-70">${escapeHtml(description)}</p>`);
-  } else {
-    lines.push('---');
-    lines.push(marker);
-    lines.push('');
-    lines.push(`# ${section.name}`);
-    lines.push('');
-    lines.push(`<!-- ${t('comment_section_content', lang)} "${section.name}" -->`);
-  }
-
-  lines.push('');
-  return lines.join('\n');
+  const { frontmatter, body } = generateSectionContent(section, config, id);
+  const notes = generateSectionNotes(section, config);
+  return ['---', ...frontmatter, '---', ...body, ...notes, ''].join('\n');
 }
