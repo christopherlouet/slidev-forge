@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.0.0] - 2026-02-18
+
+### Added
+
+- **Contextual speaker notes** per section type with FR/EN i18n support
+- **v-click animations** intelligently applied per layout type (`<v-clicks>` wrapper, `<v-click>` on specific elements)
+- **Progressive code highlighting** with `{1-3|5-8}` syntax for step-by-step reveal
+- **External code file import** via Slidev `<<< @/path` syntax with optional highlights
+- **Per-section transition override** allowing different transitions within a single presentation
+- **4 new layouts**: `section-divider`, `statement`, `image-left`, `image`
+- **Enriched preset content** via `preset-content.ts` registry providing rich example content per preset/section/language
+- **Keynote preset** with 17 sections (cover, statement, about, facts, image, steps, code, diagram, two-cols, qna, thanks)
+- New Section interface fields: `content`, `clicks`, `highlights`, `file`, `transition`
+- 12 new i18n translation keys for preset sections and layouts
+- 160+ new tests (869 total)
+
+### Changed
+
+- **conference** preset: 7 → 13 sections (added section-dividers, steps, diagram, fact)
+- **workshop** preset: 7 → 13 sections (added section-dividers, checkpoints, diagram)
+- **lightning** preset: 4 → 6 sections (added statement hook, thanks)
+- **pitch** preset: 7 → 11 sections (added statement hook, section-divider, fact)
+- Refactored shared `section-content.ts` extracted from `slides.ts` and `multi-file.ts` to eliminate duplication
+
 ## [2.1.0] - 2026-02-18
 
 ### Added
