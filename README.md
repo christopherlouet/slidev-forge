@@ -9,6 +9,8 @@ Scaffold complete [Slidev](https://sli.dev) presentation projects from a YAML co
 
 **Why?** Setting up a Slidev project with custom themes, layouts, deploy configs, and consistent structure takes time. `slidev-forge` does it in seconds — answer a few questions or point it at a YAML file and get a ready-to-present project.
 
+![slidev-forge demo](slidev-forge-final.gif)
+
 ## Quick Start
 
 ```bash
