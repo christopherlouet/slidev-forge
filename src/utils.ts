@@ -67,6 +67,19 @@ export function generateSectionIds(sections: Section[]): Map<Section, string> {
   return ids;
 }
 
+export function sanitizeYamlScalar(value: string): string {
+  return value.replace(/[\r\n]/g, '');
+}
+
+const SAFE_CSS_URL_PATH = /^[a-zA-Z0-9._\/-]+$/;
+
+export function sanitizeCssUrlPath(value: string): string {
+  if (!SAFE_CSS_URL_PATH.test(value)) {
+    throw new Error(`Invalid CSS url path: "${value}" contains unsafe characters`);
+  }
+  return value;
+}
+
 export function sanitizeProjectName(name: string): string {
   const cleaned = name.replace(/\.\.\//g, '').replace(/\.\//g, '').replace(/^\.+/, '');
   const result = slugify(cleaned);

@@ -1,12 +1,19 @@
 import { readFile } from 'node:fs/promises';
 import { parse } from 'yaml';
-import { slugify, sanitizeProjectName } from './utils.js';
+import { slugify, sanitizeProjectName, validateGitHubUsername, validateUrl, sanitizeYamlScalar, sanitizeCssUrlPath } from './utils.js';
 import { THEMES, DEFAULT_THEME, TRANSITIONS, DEFAULT_TRANSITION, buildCustomTheme } from './themes.js';
 import { SUPPORTED_LANGUAGES, DEFAULT_LANGUAGE, t } from './i18n.js';
 import type { Section, UserConfig, ResolvedConfig, ExportConfig, OptionsConfig } from './types.js';
 
 const VALID_COLOR_SCHEMAS = ['light', 'dark', 'auto'] as const;
 const ASPECT_RATIO_REGEX = /^\d+\/\d+$/;
+const SAFE_ADDON_REGEX = /^[a-z0-9@\/._-]+$/i;
+const SAFE_FONT_KEY_REGEX = /^[a-zA-Z][a-zA-Z0-9]*$/;
+const VALID_MERMAID_TYPES = [
+  'flowchart', 'graph', 'sequenceDiagram', 'classDiagram', 'stateDiagram',
+  'erDiagram', 'gantt', 'pie', 'gitgraph', 'mindmap', 'timeline',
+  'quadrantChart', 'sankey', 'xychart', 'block',
+];
 
 export const SECTION_TYPES: string[] = ['default', 'two-cols', 'image-right', 'quote', 'qna', 'thanks', 'about', 'code', 'diagram', 'cover', 'iframe', 'steps', 'fact'];
 
@@ -51,14 +58,37 @@ export function normalizeSections(sections: (string | Section)[]): Section[] {
     if (typeof section === 'string') {
       return { name: section, type: 'default' };
     }
-    if (!section.type) {
-      return { ...section, type: 'default' };
+    const result = { ...section };
+    if (!result.type) {
+      result.type = 'default';
+    } else if (!SECTION_TYPES.includes(result.type)) {
+      console.warn(`Unknown section type "${result.type}", falling back to "default"`);
+      result.type = 'default';
     }
-    if (!SECTION_TYPES.includes(section.type)) {
-      console.warn(`Unknown section type "${section.type}", falling back to "default"`);
-      return { ...section, type: 'default' };
+
+    // Validate section.image
+    if (result.image !== undefined) {
+      if (typeof result.image !== 'string' || !validateUrl(result.image)) {
+        console.warn(`Invalid section image URL "${result.image}", using default`);
+        result.image = 'https://cover.sli.dev';
+      }
     }
-    return section;
+
+    // Validate section.diagram against mermaid whitelist
+    if (result.diagram !== undefined) {
+      if (typeof result.diagram !== 'string') {
+        console.warn(`Invalid diagram type, falling back to "flowchart TD"`);
+        result.diagram = 'flowchart TD';
+      } else {
+        const firstWord = result.diagram.trim().split(/\s+/)[0];
+        if (!VALID_MERMAID_TYPES.includes(firstWord)) {
+          console.warn(`Invalid diagram type "${firstWord}", falling back to "flowchart TD"`);
+          result.diagram = 'flowchart TD';
+        }
+      }
+    }
+
+    return result;
   });
 }
 
@@ -134,7 +164,70 @@ export function mergeDefaults(userConfig: UserConfig): ResolvedConfig {
     if (!Array.isArray(config.addons)) {
       console.warn(`Invalid addons: expected an array, ignoring`);
       delete config.addons;
+    } else {
+      const original = config.addons;
+      config.addons = original.filter((addon) => {
+        if (typeof addon !== 'string' || !SAFE_ADDON_REGEX.test(addon)) {
+          console.warn(`Invalid addon name "${addon}", ignoring`);
+          return false;
+        }
+        return true;
+      });
     }
+  }
+
+  // Validate github username
+  if (config.github !== undefined) {
+    if (typeof config.github !== 'string' || !validateGitHubUsername(config.github)) {
+      console.warn(`Invalid GitHub username "${config.github}", ignoring`);
+      delete config.github;
+    }
+  }
+
+  // Validate favicon
+  if (config.favicon !== undefined) {
+    if (typeof config.favicon !== 'string') {
+      console.warn(`Invalid favicon, ignoring`);
+      delete config.favicon;
+    } else {
+      config.favicon = sanitizeYamlScalar(config.favicon);
+      if (!validateUrl(config.favicon) && !/^[a-zA-Z0-9._\/-]+$/.test(config.favicon)) {
+        console.warn(`Invalid favicon "${config.favicon}", ignoring`);
+        delete config.favicon;
+      }
+    }
+  }
+
+  // Validate logo
+  if (config.logo !== undefined) {
+    if (typeof config.logo !== 'string') {
+      console.warn(`Invalid logo, ignoring`);
+      delete config.logo;
+    } else {
+      try {
+        sanitizeCssUrlPath(config.logo);
+      } catch {
+        console.warn(`Invalid logo path "${config.logo}", ignoring`);
+        delete config.logo;
+      }
+    }
+  }
+
+  // Validate fonts
+  if (config.fonts !== undefined && typeof config.fonts === 'object') {
+    const sanitized: Record<string, string> = {};
+    for (const [key, value] of Object.entries(config.fonts)) {
+      if (!SAFE_FONT_KEY_REGEX.test(key)) {
+        console.warn(`Invalid font key "${key}", ignoring`);
+        continue;
+      }
+      if (typeof value !== 'string') {
+        console.warn(`Invalid font value for "${key}", ignoring`);
+        continue;
+      }
+      sanitized[key] = sanitizeYamlScalar(value);
+    }
+    config.fonts = sanitized;
   }
 
   // Resolve sections: explicit > preset > defaults

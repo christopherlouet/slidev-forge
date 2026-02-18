@@ -88,8 +88,8 @@ describe('mergeSlides', () => {
       sections: ['Intro'],
     });
     const result = mergeSlides(newConfig, parsed);
-    expect(result).toContain('title: New Title');
-    expect(result).not.toContain('title: Old Title');
+    expect(result).toContain("title: 'New Title'");
+    expect(result).not.toContain("title: 'Old Title'");
   });
 
   it('should preserve user-modified content in existing sections', () => {
@@ -214,6 +214,6 @@ describe('mergeSlides', () => {
     // Should produce valid output
     expect(result).toContain('<!-- section:id=introduction -->');
     expect(result).toContain('<!-- section:id=demo -->');
-    expect(result).toContain('title: Test');
+    expect(result).toContain("title: 'Test'");
   });
 });

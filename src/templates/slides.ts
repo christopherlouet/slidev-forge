@@ -1,6 +1,6 @@
 import { getTheme } from '../themes.js';
 import { t } from '../i18n.js';
-import { generateSectionIds, escapeHtml, escapeHtmlAttribute, validateUrl } from '../utils.js';
+import { generateSectionIds, escapeHtml, escapeHtmlAttribute, validateUrl, sanitizeYamlScalar } from '../utils.js';
 import type { ResolvedConfig, Section, ThemeDefinition, SocialConfig } from '../types.js';
 
 interface SocialPlatformDef {
@@ -57,8 +57,8 @@ function generateFrontmatter(config: ResolvedConfig): string {
   const lines: string[] = [
     '---',
     `theme: ${config.slidev_theme}`,
-    `title: ${config.title}`,
-    `author: ${config.author}`,
+    `title: '${sanitizeYamlScalar(config.title)}'`,
+    `author: '${sanitizeYamlScalar(config.author)}'`,
     'hideInToc: true',
     'info: false',
     `class: text-center`,
@@ -84,7 +84,7 @@ function generateFrontmatter(config: ResolvedConfig): string {
     lines.push(`colorSchema: ${config.color_schema}`);
   }
   if (config.favicon) {
-    lines.push(`favicon: ${config.favicon}`);
+    lines.push(`favicon: '${sanitizeYamlScalar(config.favicon)}'`);
   }
   if (config.download === true) {
     lines.push('download: true');
@@ -100,7 +100,7 @@ function generateFrontmatter(config: ResolvedConfig): string {
   if (config.fonts && typeof config.fonts === 'object') {
     lines.push('fonts:');
     for (const [key, value] of Object.entries(config.fonts)) {
-      lines.push(`  ${key}: ${value}`);
+      lines.push(`  ${key}: '${sanitizeYamlScalar(String(value))}'`);
     }
   }
 
@@ -108,7 +108,7 @@ function generateFrontmatter(config: ResolvedConfig): string {
   if (Array.isArray(config.addons) && config.addons.length > 0) {
     lines.push('addons:');
     for (const addon of config.addons) {
-      lines.push(`  - ${addon}`);
+      lines.push(`  - '${sanitizeYamlScalar(String(addon))}'`);
     }
   }
 
@@ -146,7 +146,7 @@ function generateTitleSlide(config: ResolvedConfig, theme: ThemeDefinition): str
     lines.push('');
     lines.push('<div class="abs-br m-6 flex gap-2">');
     lines.push(
-      `  <a href="https://github.com/${config.github}/${config.project_name}" target="_blank" alt="GitHub" title="Open in GitHub"`,
+      `  <a href="https://github.com/${escapeHtmlAttribute(config.github)}/${escapeHtmlAttribute(config.project_name)}" target="_blank" alt="GitHub" title="Open in GitHub"`,
     );
     lines.push(
       '    class="text-xl slidev-icon-btn opacity-50 !border-none !hover:text-white">',

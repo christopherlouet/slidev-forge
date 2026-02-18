@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0] - 2026-02-18
+
+### Added
+
+- **YAML scalar sanitization** (`sanitizeYamlScalar`): strips `\r`/`\n` from user-controlled values to prevent YAML injection via newlines in title, author, favicon, fonts, and addons
+- **CSS URL path validation** (`sanitizeCssUrlPath`): validates logo paths against a safe character regex to prevent CSS injection via `url()`
+- **Config input validation**: validates github username, favicon URL/path, logo path, addon names, font keys/values, section image URLs, and diagram types at config merge time
+- **Mermaid diagram type whitelist**: only allows known mermaid diagram types (flowchart, sequenceDiagram, classDiagram, etc.)
+- **Config key whitelist**: `config set` command now rejects unknown configuration keys
+- **20 new security tests**: covering YAML injection, CSS injection, GitHub username validation, favicon/logo/image validation, diagram type validation, addon/font sanitization
+
+### Changed
+
+- YAML frontmatter values (title, author, favicon, fonts, addons) are now single-quoted for defense-in-depth
+- GitHub link in title slide now uses `escapeHtmlAttribute()` for href values
+- Logo CSS block is skipped silently if path validation fails (defense-in-depth)
+
+### Security
+
+- **YAML injection via newlines**: title/author/favicon/fonts/addons values with `\n`/`\r` are sanitized before template output
+- **CSS injection via logo**: logo path validated against `/^[a-zA-Z0-9._\/-]+$/`
+- **HTML injection via GitHub link**: username and project_name escaped with `escapeHtmlAttribute()`
+- **Invalid favicon URLs rejected**: `javascript:` and other non-http(s) schemes blocked
+- **Invalid section images rejected**: only valid http(s) URLs accepted
+- **Mermaid directive injection blocked**: diagram types validated against whitelist
+- **Arbitrary config keys blocked**: `config set` only accepts known UserConfig fields
+
 ## [2.0.0] - 2026-02-17
 
 ### Added

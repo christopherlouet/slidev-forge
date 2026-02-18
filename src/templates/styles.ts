@@ -1,4 +1,5 @@
 import { getTheme } from '../themes.js';
+import { sanitizeCssUrlPath } from '../utils.js';
 import type { ResolvedConfig } from '../types.js';
 
 export function generateStyles(config: ResolvedConfig): string {
@@ -35,7 +36,9 @@ li::marker {
 `;
 
   if (config.logo) {
-    css += `
+    try {
+      const safeLogo = sanitizeCssUrlPath(config.logo);
+      css += `
 .slidev-layout::after {
     content: '';
     position: absolute;
@@ -43,10 +46,13 @@ li::marker {
     right: 1rem;
     width: 48px;
     height: 48px;
-    background: url('/${config.logo}') no-repeat center / contain;
+    background: url('/${safeLogo}') no-repeat center / contain;
     pointer-events: none;
 }
 `;
+    } catch {
+      // Skip logo CSS if path is unsafe
+    }
   }
 
   return css;
