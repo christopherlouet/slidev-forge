@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.2.0] - 2026-02-18
+
+### Added
+
+- **Conference registry** with 10 French tech conferences (BreizhCamp, Devoxx France, BDX I/O, AlpesCraft, MiXiT, Volcamp, Sunny Tech, DevFest Nantes, Riviera DEV, SnowCamp)
+- **Automatic conference enrichment**: `conference: breizhcamp` in YAML auto-sets `event_name` and `logo`
+- **Real SVG logos** for all 10 conferences, copied to project `public/` during generation
+- **Interactive conference selection** in CLI with emoji icons per conference
+- **Conference commands**: `slidev-forge conference list|show|set` for managing conference associations
+- **Emoji identifiers** for each conference in CLI display (e.g., 🌊 BreizhCamp, 🗼 Devoxx France, ❄️ SnowCamp)
+- **Enhanced theme system** with improved CSS generation for conference-specific visual identity
+- **Real preset content**: replaced placeholder text with credible examples (code snippets, Mermaid diagrams, realistic metrics)
+- **Matrix theme improvements**: advanced CSS with glow effects, scanlines, mono typography
+- 257 new tests (1126 total)
+
+### Changed
+
+- Logo serving switched from remote URLs to local file copy for reliability
+- Style template handles both local paths and HTTPS URLs for logos
+- Config pipeline enriches conference metadata during `mergeDefaults()`
+
 ## [3.0.0] - 2026-02-18
 
 ### Added
