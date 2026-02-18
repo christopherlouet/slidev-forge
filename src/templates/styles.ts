@@ -46,8 +46,18 @@ li::marker {
   }
 
   if (config.logo) {
-    try {
-      const safeLogo = sanitizeCssUrlPath(config.logo);
+    let logoUrl: string | null = null;
+    if (config.logo.startsWith('https://')) {
+      logoUrl = config.logo;
+    } else {
+      try {
+        const safeLogo = sanitizeCssUrlPath(config.logo);
+        logoUrl = `/${safeLogo}`;
+      } catch {
+        // Skip logo CSS if path is unsafe
+      }
+    }
+    if (logoUrl) {
       css += `
 .slidev-layout::after {
     content: '';
@@ -56,12 +66,10 @@ li::marker {
     right: 1rem;
     width: 48px;
     height: 48px;
-    background: url('/${safeLogo}') no-repeat center / contain;
+    background: url('${logoUrl}') no-repeat center / contain;
     pointer-events: none;
 }
 `;
-    } catch {
-      // Skip logo CSS if path is unsafe
     }
   }
 

@@ -69,6 +69,7 @@ export interface UserConfig {
   download?: boolean;
   preset?: string;
   logo?: string;
+  conference?: string;
   social?: SocialConfig;
   footer?: string;
   slide_numbers?: boolean;
@@ -100,6 +101,7 @@ export interface ResolvedConfig {
   download?: boolean;
   preset?: string;
   logo?: string;
+  conference?: string;
   social?: SocialConfig;
   footer?: string;
   slide_numbers?: boolean;

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <clipPath id="circle-clip">
+      <circle cx="50" cy="50" r="46"/>
+    </clipPath>
+  </defs>
+  <!-- Outer circle -->
+  <circle cx="50" cy="50" r="48" fill="#1B3A5C"/>
+  <!-- Inner circle lighter -->
+  <circle cx="50" cy="50" r="46" fill="#1E4A6E"/>
+  <!-- Mountain range background -->
+  <polygon points="10,65 30,35 50,55 65,30 90,65" fill="#2980B9" clip-path="url(#circle-clip)"/>
+  <!-- Mountain range foreground -->
+  <polygon points="5,70 25,45 40,58 55,38 70,52 85,42 95,70" fill="#1B3A5C" clip-path="url(#circle-clip)"/>
+  <!-- Snow caps -->
+  <polygon points="30,35 25,42 35,42" fill="white" opacity="0.9"/>
+  <polygon points="65,30 60,38 70,38" fill="white" opacity="0.9"/>
+  <polygon points="85,42 81,48 89,48" fill="white" opacity="0.8"/>
+  <!-- Ground -->
+  <rect x="4" y="68" width="92" height="30" rx="0" fill="#15304A" clip-path="url(#circle-clip)"/>
+  <!-- ALPESCRAFT text curved along top -->
+  <path id="textArc" d="M 18,55 A 40,40 0 0,1 82,55" fill="none"/>
+  <text font-family="Arial,Helvetica,sans-serif" font-weight="bold" font-size="11" fill="white" letter-spacing="3">
+    <textPath href="#textArc" startOffset="50%" text-anchor="middle">ALPESCRAFT</textPath>
+  </text>
+  <!-- Thin border ring -->
+  <circle cx="50" cy="50" r="46" fill="none" stroke="#2980B9" stroke-width="1.5" opacity="0.5"/>
+</svg>
