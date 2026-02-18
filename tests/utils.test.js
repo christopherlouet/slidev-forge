@@ -69,6 +69,11 @@ describe('utils', () => {
       expect(sanitizeProjectName('../../../etc/passwd')).toBe('etc-passwd');
     });
 
+    it('should handle nested path traversal after single replace (....//)', () => {
+      expect(sanitizeProjectName('....//evil')).toBe('evil');
+      expect(sanitizeProjectName('....//..//evil')).toBe('evil');
+    });
+
     it('should remove leading dots', () => {
       expect(sanitizeProjectName('..hidden')).toBe('hidden');
     });

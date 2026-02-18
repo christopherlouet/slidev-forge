@@ -81,7 +81,13 @@ export function sanitizeCssUrlPath(value: string): string {
 }
 
 export function sanitizeProjectName(name: string): string {
-  const cleaned = name.replace(/\.\.\//g, '').replace(/\.\//g, '').replace(/^\.+/, '');
+  let cleaned = name;
+  let prev = '';
+  while (cleaned !== prev) {
+    prev = cleaned;
+    cleaned = cleaned.replace(/\.\.\//g, '').replace(/\.\//g, '');
+  }
+  cleaned = cleaned.replace(/^\.+/, '');
   const result = slugify(cleaned);
   if (!result) {
     throw new Error('Project name cannot be empty after sanitization');
