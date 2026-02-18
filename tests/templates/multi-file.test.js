@@ -15,7 +15,7 @@ describe('generateMultiFile', () => {
 
     const result = generateMultiFile(config);
     expect(result.slidesMain).toContain('theme: seriph');
-    expect(result.slidesMain).toContain('title: Test');
+    expect(result.slidesMain).toContain("title: 'Test'");
     expect(result.slidesMain).toContain('src: ./pages/01-toc.md');
     expect(result.slidesMain).toContain('src: ./pages/02-introduction.md');
     expect(result.slidesMain).toContain('src: ./pages/03-demo.md');
@@ -335,7 +335,7 @@ describe('generateMultiFile', () => {
         sections: [{ name: 'Intro', type: 'default' }],
       });
       const result = generateMultiFile(config);
-      expect(result.slidesMain).toContain('favicon: logo.png');
+      expect(result.slidesMain).toContain("favicon: 'logo.png'");
     });
 
     it('should include download when configured', () => {
@@ -370,7 +370,7 @@ describe('generateMultiFile', () => {
       });
       const result = generateMultiFile(config);
       expect(result.slidesMain).toContain('fonts:');
-      expect(result.slidesMain).toContain('  sans: Inter');
+      expect(result.slidesMain).toContain("  sans: 'Inter'");
     });
 
     it('should include addons when configured', () => {
@@ -382,7 +382,7 @@ describe('generateMultiFile', () => {
       });
       const result = generateMultiFile(config);
       expect(result.slidesMain).toContain('addons:');
-      expect(result.slidesMain).toContain('  - slidev-addon-qrcode');
+      expect(result.slidesMain).toContain("  - 'slidev-addon-qrcode'");
     });
 
     it('should include subtitle in title slide', () => {

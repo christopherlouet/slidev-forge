@@ -1,7 +1,7 @@
 import type { ResolvedConfig, Section } from '../types.js';
 import { t } from '../i18n.js';
 import { getTheme } from '../themes.js';
-import { generateSectionIds, escapeHtml, escapeHtmlAttribute, validateUrl, slugify } from '../utils.js';
+import { generateSectionIds, escapeHtml, escapeHtmlAttribute, validateUrl, slugify, sanitizeYamlScalar } from '../utils.js';
 
 interface MultiFileOutput {
   slidesMain: string;
@@ -62,8 +62,8 @@ function generateMainFrontmatter(config: ResolvedConfig): string {
   const lines: string[] = [
     '---',
     `theme: ${config.slidev_theme}`,
-    `title: ${config.title}`,
-    `author: ${config.author}`,
+    `title: '${sanitizeYamlScalar(config.title)}'`,
+    `author: '${sanitizeYamlScalar(config.author)}'`,
     'hideInToc: true',
     'info: false',
     'class: text-center',
@@ -86,7 +86,7 @@ function generateMainFrontmatter(config: ResolvedConfig): string {
     lines.push(`colorSchema: ${config.color_schema}`);
   }
   if (config.favicon) {
-    lines.push(`favicon: ${config.favicon}`);
+    lines.push(`favicon: '${sanitizeYamlScalar(config.favicon)}'`);
   }
   if (config.download === true) {
     lines.push('download: true');
@@ -98,13 +98,13 @@ function generateMainFrontmatter(config: ResolvedConfig): string {
   if (config.fonts && typeof config.fonts === 'object') {
     lines.push('fonts:');
     for (const [key, value] of Object.entries(config.fonts)) {
-      lines.push(`  ${key}: ${value}`);
+      lines.push(`  ${key}: '${sanitizeYamlScalar(String(value))}'`);
     }
   }
   if (Array.isArray(config.addons) && config.addons.length > 0) {
     lines.push('addons:');
     for (const addon of config.addons) {
-      lines.push(`  - ${addon}`);
+      lines.push(`  - '${sanitizeYamlScalar(String(addon))}'`);
     }
   }
 

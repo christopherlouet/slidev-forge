@@ -170,13 +170,13 @@ describe('generator', () => {
       expect(slides).toContain('lineNumbers: true');
       expect(slides).toContain("aspectRatio: '4/3'");
       expect(slides).toContain('colorSchema: dark');
-      expect(slides).toContain('favicon: logo.png');
+      expect(slides).toContain("favicon: 'logo.png'");
       expect(slides).toContain('download: true');
       expect(slides).toContain('lang: en');
       expect(slides).toContain('fonts:');
-      expect(slides).toContain('  sans: Inter');
+      expect(slides).toContain("  sans: 'Inter'");
       expect(slides).toContain('addons:');
-      expect(slides).toContain('  - slidev-addon-qrcode');
+      expect(slides).toContain("  - 'slidev-addon-qrcode'");
       expect(slides).toContain('# Table of Contents');
     });
 

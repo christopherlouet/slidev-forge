@@ -4,6 +4,14 @@ import { parse, stringify } from 'yaml';
 import pc from 'picocolors';
 import type { UserConfig } from '../types.js';
 
+const ALLOWED_CONFIG_KEYS = new Set([
+  'title', 'author', 'subtitle', 'event_name', 'github', 'project_name',
+  'slidev_theme', 'visual_theme', 'transition', 'language', 'sections',
+  'deploy', 'export', 'options', 'fonts', 'line_numbers', 'aspect_ratio',
+  'color_schema', 'addons', 'favicon', 'download', 'preset', 'logo',
+  'social', 'footer', 'slide_numbers', 'colors', 'multi_file',
+]);
+
 export async function runConfig(args: string[]): Promise<void> {
   const action = args[0]; // 'get' or 'set'
 
@@ -40,6 +48,11 @@ export async function runConfig(args: string[]): Promise<void> {
     }
   } else {
     // set
+    if (!ALLOWED_CONFIG_KEYS.has(key)) {
+      console.error(pc.red(`Unknown config key "${key}". Allowed keys: ${[...ALLOWED_CONFIG_KEYS].sort().join(', ')}`));
+      process.exit(1);
+    }
+
     const value = args[2];
     if (value === undefined) {
       console.error(pc.red('Value is required for set.'));

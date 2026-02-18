@@ -13,8 +13,8 @@ describe('generateSlides', () => {
     const slides = generateSlides(minimalConfig);
     expect(slides.startsWith('---\n')).toBe(true);
     expect(slides).toContain('theme: seriph');
-    expect(slides).toContain('title: Mon Talk');
-    expect(slides).toContain('author: Chris');
+    expect(slides).toContain("title: 'Mon Talk'");
+    expect(slides).toContain("author: 'Chris'");
   });
 
   it('should include transition in frontmatter', () => {
@@ -251,8 +251,8 @@ describe('generateSlides', () => {
       });
       const slides = generateSlides(config);
       expect(slides).toContain('fonts:');
-      expect(slides).toContain('  sans: Inter');
-      expect(slides).toContain('  mono: Fira Code');
+      expect(slides).toContain("  sans: 'Inter'");
+      expect(slides).toContain("  mono: 'Fira Code'");
     });
 
     it('should include partial fonts when only mono is specified', () => {
@@ -263,7 +263,7 @@ describe('generateSlides', () => {
       });
       const slides = generateSlides(config);
       expect(slides).toContain('fonts:');
-      expect(slides).toContain('  mono: JetBrains Mono');
+      expect(slides).toContain("  mono: 'JetBrains Mono'");
       expect(slides).not.toContain('  sans:');
     });
 
@@ -312,7 +312,7 @@ describe('generateSlides', () => {
     it('should include favicon when configured', () => {
       const config = mergeDefaults({ title: 'Test', author: 'Me', favicon: 'logo.png' });
       const slides = generateSlides(config);
-      expect(slides).toContain('favicon: logo.png');
+      expect(slides).toContain("favicon: 'logo.png'");
     });
 
     it('should not include favicon when not configured', () => {
@@ -341,8 +341,8 @@ describe('generateSlides', () => {
       });
       const slides = generateSlides(config);
       expect(slides).toContain('addons:');
-      expect(slides).toContain('  - slidev-addon-qrcode');
-      expect(slides).toContain('  - slidev-addon-excalidraw');
+      expect(slides).toContain("  - 'slidev-addon-qrcode'");
+      expect(slides).toContain("  - 'slidev-addon-excalidraw'");
     });
 
     it('should not include addons block when addons is empty', () => {
@@ -389,7 +389,7 @@ describe('generateSlides', () => {
       expect(slides).toContain('lineNumbers: true');
       expect(slides).toContain("aspectRatio: '4/3'");
       expect(slides).toContain('colorSchema: dark');
-      expect(slides).toContain('favicon: logo.png');
+      expect(slides).toContain("favicon: 'logo.png'");
       expect(slides).toContain('download: true');
       expect(slides).toContain('htmlAttrs:');
       expect(slides).toContain('fonts:');
